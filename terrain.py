@@ -1,0 +1,6 @@
+#Format: terrain = [topSpeedEffect, turningEffect, accelerationEffect]
+track = [1, 1, 1]
+grass = [0.7, 0.7, 0.7]
+gravel = [0.4, 0.4, 0.4]
+wall = [0, 0, 0]
+kerb = [1, 1.4, 1]
