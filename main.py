@@ -154,7 +154,7 @@ buttonColourDark = (230, 230, 0)
 green = (67, 240, 36)
 greenDark = (53, 189, 28)
 
-racecarImage = pygame.image.load(os.path.join('images', 'racecar.png'))
+racecarImage = pygame.image.load(os.path.join('images', 'racecar.png')).convert_alpha()
 
 def drawText(text, font, color, surface, x, y): #Function to draw text
     textObj = font.render(text, 1, color)
@@ -203,13 +203,13 @@ def trackMenu():
     inTrackMenu = True
 
     track1Button = pygame.Rect(25, 100, 185, 219)
-    track1Preview = pygame.image.load(os.path.join('images', 'track1preview.png'))
+    track1Preview = pygame.image.load(os.path.join('images', 'track1preview.png')).convert_alpha()
 
     track2Button = pygame.Rect(283, 100, 185, 219)
-    track2Preview = pygame.image.load(os.path.join('images', 'track2preview.png'))
+    track2Preview = pygame.image.load(os.path.join('images', 'track2preview.png')).convert_alpha()
 
     track3Button = pygame.Rect(540, 100, 185, 219)
-    track3Preview = pygame.image.load(os.path.join('images', 'track3preview.png'))
+    track3Preview = pygame.image.load(os.path.join('images', 'track3preview.png')).convert_alpha()
 
     while inTrackMenu:
         screen.fill(blue)
@@ -223,6 +223,7 @@ def trackMenu():
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    mainMenu()
                     inTrackMenu = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -236,12 +237,13 @@ def trackMenu():
             if click == True:
                 trackName = "track1"
                 trackLeaderboard = open("track1leaderboard.txt", "w+")
-                trackImage = pygame.image.load(os.path.join('images', 'track1.png'))
+                trackImage = pygame.image.load(os.path.join('images', 'track1.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
-                trackTerrain = pygame.image.load(os.path.join('images', 'track1terrain.png'))
+                trackTerrain = pygame.image.load(os.path.join('images', 'track1terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 700, 500, tracks.track1, tracks.track1Sectors)
                 setupMenu(track)
+                inTrackMenu = False
         else:
             pygame.draw.rect(screen, yellow, track1Button)
             screen.blit(track1Preview, (30,105))
@@ -251,12 +253,13 @@ def trackMenu():
             if click == True:
                 trackName = "track2"
                 trackLeaderboard = open("track2leaderboard.txt", "w+")
-                trackImage = pygame.image.load(os.path.join('images', 'track2.png'))
+                trackImage = pygame.image.load(os.path.join('images', 'track2.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
-                trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png'))
+                trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 1000, tracks.track2, tracks.track2Sectors)
                 setupMenu(track)
+                inTrackMenu = False
         else:
             pygame.draw.rect(screen, yellow, track2Button)
             screen.blit(track2Preview, (288,105))
@@ -266,12 +269,13 @@ def trackMenu():
             if click == True:
                 trackName = "track3"
                 trackLeaderboard = open("track3leaderboard.txt", "w+")
-                trackImage = pygame.image.load(os.path.join('images', 'track3.png'))
+                trackImage = pygame.image.load(os.path.join('images', 'track3.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
-                trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png'))
+                trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
                 setupMenu(track)
+                inTrackMenu = False
         else:
             pygame.draw.rect(screen, yellow, track3Button)
             screen.blit(track3Preview, (545,105))
@@ -283,36 +287,36 @@ def setupMenu(track):
     inSetupMenu = True
 
     driveButtonRect = pygame.Rect(600, 259, 100, 207)
-    driveButton = pygame.image.load(os.path.join('images', 'driveButton.png'))
-    driveButtonSelected = pygame.image.load(os.path.join('images', 'driveButtonSelected.png'))
+    driveButton = pygame.image.load(os.path.join('images', 'driveButton.png')).convert_alpha()
+    driveButtonSelected = pygame.image.load(os.path.join('images', 'driveButtonSelected.png')).convert_alpha()
 
-    fwImage = pygame.image.load(os.path.join('images', 'frontWingSetup.png'))
-    fwSelectorImage = pygame.image.load(os.path.join('images', 'selector.png'))
+    fwImage = pygame.image.load(os.path.join('images', 'frontWingSetup.png')).convert_alpha()
+    fwSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     fwSelector = fwSelectorImage.get_rect()
     fwSelector.center = (102, 188)
 
-    rwImage = pygame.image.load(os.path.join('images', 'rearWingSetup.png'))
-    rwSelectorImage = pygame.image.load(os.path.join('images', 'selector.png'))
+    rwImage = pygame.image.load(os.path.join('images', 'rearWingSetup.png')).convert_alpha()
+    rwSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     rwSelector = rwSelectorImage.get_rect()
     rwSelector.center = (300, 188)
 
-    gbImage = pygame.image.load(os.path.join('images', 'gearRatioSetup.png'))
-    gbSelectorImage = pygame.image.load(os.path.join('images', 'selector.png'))
+    gbImage = pygame.image.load(os.path.join('images', 'gearRatioSetup.png')).convert_alpha()
+    gbSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     gbSelector = gbSelectorImage.get_rect()
     gbSelector.center = (495, 188)
 
-    camberImage = pygame.image.load(os.path.join('images', 'camberSetup.png'))
-    camberSelectorImage = pygame.image.load(os.path.join('images', 'selector.png'))
+    camberImage = pygame.image.load(os.path.join('images', 'camberSetup.png')).convert_alpha()
+    camberSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     camberSelector = camberSelectorImage.get_rect()
     camberSelector.center = (105, 395)
 
-    toeImage = pygame.image.load(os.path.join('images', 'toeSetup.png'))
-    toeSelectorImage = pygame.image.load(os.path.join('images', 'selector.png'))
+    toeImage = pygame.image.load(os.path.join('images', 'toeSetup.png')).convert_alpha()
+    toeSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     toeSelector = toeSelectorImage.get_rect()
     toeSelector.center = (300, 395)
 
-    bbImage = pygame.image.load(os.path.join('images', 'brakeSetup.png'))
-    bbSelectorImage = pygame.image.load(os.path.join('images', 'selector.png'))
+    bbImage = pygame.image.load(os.path.join('images', 'brakeSetup.png')).convert_alpha()
+    bbSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     bbSelector = bbSelectorImage.get_rect()
     bbSelector.center = (495, 395)
 
@@ -342,6 +346,7 @@ def setupMenu(track):
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    trackMenu()
                     inSetupMenu = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -386,6 +391,7 @@ def setupMenu(track):
             if click == True:
                 currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup)
                 drive(track, currentSetup)
+                inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
             screen.blit(driveButton, (600, 259))
@@ -546,12 +552,16 @@ def getTrackSection(racecar, track):
     for section in track.sections:
         if flDone == False and colourAtFL == section[1]:
             sectionsIn.append(section)
+            flDone = True
         if frDone == False and colourAtFR == section[1]:
             sectionsIn.append(section)
+            frDone = True
         if rlDone == False and colourAtRL == section[1]:
             sectionsIn.append(section)
+            rlDone = True
         if rrDone == False and colourAtRR == section[1]:
             sectionsIn.append(section)
+            rrDone = True
 
     for section in sectionsIn:
         if section[2][1] == "Wall":
@@ -583,10 +593,10 @@ def getFastestLap(lapToAdd, fastestLap, fastestLapString):
             fastestLapString = lapToAdd[1]
     return fastestLap, fastestLapString
 
-def getTrackSector(currentSector, section, track):
+def getTrackSector(currentSector, section, track, lapTimer, currentLap, validLap, laps, fastestLap, fastestLapString):
     if currentSector == 3 and section[0] == track.sectors[0]:
         currentSector = 1
-        lapTime, lapTotal = LapTimer.resetTimer()
+        lapTime, lapTotal = lapTimer.resetTimer()
         lapToAdd = [currentLap, lapTime, validLap, lapTotal]
         laps.append(lapToAdd)
         fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
@@ -615,7 +625,6 @@ def resetToStart(racecar, track):
 
 def drive(track, setup):
 
-    racecarImage = pygame.image.load(os.path.join('images', 'racecar.png'))
     racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup.frontWing, setup.rearWing, setup.camber, setup.toe, setup.gear, setup.brakeBias)
     racecarGroup = pygame.sprite.Group()
     racecarGroup.add(racecar)
@@ -632,9 +641,9 @@ def drive(track, setup):
 
     while driving == True:
 
-        lapTimer.updateTimer
+        lapTimer.updateTimer()
         currentSection = getTrackSection(racecar, track)
-        currentSector = getTrackSector(currentSector, currentSection, track)
+        currentSector = getTrackSector(currentSector, currentSection, track, lapTimer, currentLap, validLap, laps, fastestLap, fastestLapString)
         validLap = getValidLap(currentSection, validLap)
 
         modifier = currentSection[2][0]
@@ -644,23 +653,24 @@ def drive(track, setup):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            if keys[pygame.K_ESCAPE] == True:
-                driving = False
-            if keys[pygame.K_w] == True:
-                racecar.accelerate(modifier)
-            elif keys[pygame.K_s] == True:
-                racecar.brake(modifier)
-            else:
-                racecar.coast(modifier)
-            if keys[pygame.K_a] == True:
-                racecar.getTurnAngle(modifier)
-                racecar.turn(-racecar.turnAngle)
-            elif keys[pygame.K_d] == True:
-                racecar.getTurnAngle(modifier)
-                racecar.turn(racecar.turnAngle)
-            if keys[pygame.K_r] == True:
-                currentSector = 3
-                resetToStart(racecar, track)
+        if keys[pygame.K_ESCAPE] == True:
+            setupMenu(track)
+            driving = False
+        if keys[pygame.K_w] == True:
+            racecar.accelerate(modifier)
+        elif keys[pygame.K_s] == True:
+            racecar.brake(modifier)
+        else:
+            racecar.coast(modifier)
+        if keys[pygame.K_a] == True:
+            racecar.getTurnAngle(modifier)
+            racecar.turn(-racecar.turnAngle)
+        elif keys[pygame.K_d] == True:
+            racecar.getTurnAngle(modifier)
+            racecar.turn(racecar.turnAngle)
+        if keys[pygame.K_r] == True:
+            currentSector = 3
+            resetToStart(racecar, track)
 
         racecar.update()
         pygame.display.flip()
