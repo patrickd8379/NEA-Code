@@ -242,8 +242,8 @@ def trackMenu():
                 trackTerrain = pygame.image.load(os.path.join('images', 'track1terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 700, 500, tracks.track1, tracks.track1Sectors)
-                setupMenu(track)
                 inTrackMenu = False
+                setupMenu(track)
         else:
             pygame.draw.rect(screen, yellow, track1Button)
             screen.blit(track1Preview, (30,105))
@@ -258,8 +258,8 @@ def trackMenu():
                 trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 1000, tracks.track2, tracks.track2Sectors)
-                setupMenu(track)
                 inTrackMenu = False
+                setupMenu(track)
         else:
             pygame.draw.rect(screen, yellow, track2Button)
             screen.blit(track2Preview, (288,105))
@@ -274,8 +274,8 @@ def trackMenu():
                 trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
-                setupMenu(track)
                 inTrackMenu = False
+                setupMenu(track)
         else:
             pygame.draw.rect(screen, yellow, track3Button)
             screen.blit(track3Preview, (545,105))
@@ -346,8 +346,8 @@ def setupMenu(track):
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    trackMenu()
                     inSetupMenu = False
+                    trackMenu()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     click = True
@@ -593,20 +593,20 @@ def getFastestLap(lapToAdd, fastestLap, fastestLapString):
             fastestLapString = lapToAdd[1]
     return fastestLap, fastestLapString
 
-def getTrackSector(currentSector, section, track, lapTimer, currentLap, validLap, laps, fastestLap, fastestLapString):
-    if currentSector == 3 and section[0] == track.sectors[0]:
-        currentSector = 1
-        lapTime, lapTotal = lapTimer.resetTimer()
-        lapToAdd = [currentLap, lapTime, validLap, lapTotal]
-        laps.append(lapToAdd)
-        fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
-        validLap = True
-        currentLap += 1
-    elif currentSector == 1 and section[0] == track.sectors[1]:
-        currentSector = 2
-    elif currentSector == 2 and section[0] == track.sectors[2]:
-        currentSector = 3
-    return currentSector
+#def getTrackSector(currentSector, section, track, lapTimer, currentLap, validLap, laps, fastestLap, fastestLapString):
+    #if currentSector == 3 and section[0] == track.sectors[0]:
+        #currentSector = 1
+        #lapTime, lapTotal = lapTimer.resetTimer()
+        #lapToAdd = [currentLap, lapTime, validLap, lapTotal]
+        #laps.append(lapToAdd)
+        #fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
+        #validLap = True
+        #currentLap += 1
+    #elif currentSector == 1 and section[0] == track.sectors[1]:
+        #currentSector = 2
+    #elif currentSector == 2 and section[0] == track.sectors[2]:
+        #currentSector = 3
+    #return validLap, currentLap, currentSector
 
 def getValidLap(section, validLap):
     if validLap == False:
@@ -637,13 +637,26 @@ def drive(track, setup):
     validLap = False
     laps = []
 
+    lapDisplay = pygame.Rect(screenWidth/2-50, 20, 100, 50)
+
     driving = True
 
     while driving == True:
 
         lapTimer.updateTimer()
         currentSection = getTrackSection(racecar, track)
-        currentSector = getTrackSector(currentSector, currentSection, track, lapTimer, currentLap, validLap, laps, fastestLap, fastestLapString)
+        if currentSector == 3 and currentSection[0] == track.sectors[0]:
+            currentSector = 1
+            lapTime, lapTotal = lapTimer.resetTimer()
+            lapToAdd = [currentLap, lapTime, validLap, lapTotal]
+            laps.append(lapToAdd)
+            fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
+            validLap = True
+            currentLap += 1
+        elif currentSector == 1 and currentSection[0] == track.sectors[1]:
+            currentSector = 2
+        elif currentSector == 2 and currentSection[0] == track.sectors[2]:
+            currentSector = 3
         validLap = getValidLap(currentSection, validLap)
 
         modifier = currentSection[2][0]
@@ -654,8 +667,8 @@ def drive(track, setup):
                 pygame.quit()
                 sys.exit()
         if keys[pygame.K_ESCAPE] == True:
-            setupMenu(track)
             driving = False
+            saveSession(track, lapTimer)
         if keys[pygame.K_w] == True:
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] == True:
@@ -675,8 +688,56 @@ def drive(track, setup):
         racecar.update()
         pygame.display.flip()
         screen.blit(track.image, (-racecar.rect.center[0], -racecar.rect.center[1]))
+        if validLap == True:
+            pygame.draw.rect(screen, black, lapDisplay)
+        else:
+            pygame.draw.rect(screen, red, lapDisplay)
+        timer = font.render(lapTimer.currentLapTime, True, white)
+        screen.blit(timer, (lapDisplay.center[0]-40, lapDisplay.center[1]-10))
         screen.blit(racecar.image, (screenWidth/2,screenHeight/2))
 
+        clock.tick(60)
+
+def saveSession(track, lapTimer):
+
+    click = False
+
+    inSaveSession = True
+
+    while inSaveSession:
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        screen.fill(blue)
+        drawText("Save session or change setup", font, black, screen, 20, 20)
+
+        mx, my = pygame.mouse.get_pos()
+
+        leaderboardButton = pygame.Rect(screenWidth/2-150, 200, 300, 50)
+        setupButton = pygame.Rect(screenWidth/2-150, 300, 300, 50)
+
+        if setupButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, setupButton)
+            pygame.draw.rect(screen, yellow, leaderboardButton)
+        elif leaderboardButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, leaderboardButton)
+            pygame.draw.rect(screen, yellow, setupButton)
+        else:
+            pygame.draw.rect(screen, yellow, setupButton)
+            pygame.draw.rect(screen, yellow, leaderboardButton)
+
+        leaderText = font.render("Save this session", True, (0, 0, 0))
+        setupText = font.render("Change setup", True, (0, 0, 0))
+        screen.blit(leaderText, (leaderboardButton.center[0]-80, leaderboardButton.center[1]-10))
+        screen.blit(setupText, (setupButton.center[0]-70, setupButton.center[1]-10))
+
+        pygame.display.flip()
         clock.tick(60)
 
 mainMenu()
