@@ -156,6 +156,8 @@ greenDark = (53, 189, 28)
 
 racecarImage = pygame.image.load(os.path.join('images', 'racecar.png')).convert_alpha()
 
+holdLaps = []
+
 def drawText(text, font, color, surface, x, y): #Function to draw text
     textObj = font.render(text, 1, color)
     textRect = textObj.get_rect()
@@ -390,7 +392,7 @@ def setupMenu(track):
             screen.blit(driveButtonSelected, (600, 259))
             if click == True:
                 currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup)
-                drive(track, currentSetup)
+                drive(track, currentSetup, holdLaps)
                 inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -623,7 +625,7 @@ def resetToStart(racecar, track):
     racecar.image = racecar.rotImg[0]
     racecar.position = track.spawnPoint
 
-def drive(track, setup):
+def drive(track, setup, holdLaps):
 
     racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup.frontWing, setup.rearWing, setup.camber, setup.toe, setup.gear, setup.brakeBias)
     racecarGroup = pygame.sprite.Group()
@@ -635,7 +637,10 @@ def drive(track, setup):
     currentLap = 0
     currentSector = 3
     validLap = False
-    laps = []
+    if len(holdLaps) > 0:
+        laps = holdLaps
+    else:
+        laps = []
 
     lapDisplay = pygame.Rect(screenWidth/2-50, 20, 100, 50)
 
@@ -668,7 +673,8 @@ def drive(track, setup):
                 sys.exit()
         if keys[pygame.K_ESCAPE] == True:
             driving = False
-            saveSession(track, fastestLapString, setup)
+            holdLaps = laps
+            pause(track, fastestLapString, setup, holdLaps)
         if keys[pygame.K_w] == True:
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] == True:
@@ -698,11 +704,11 @@ def drive(track, setup):
 
         clock.tick(60)
 
-def saveSession(track, fastestLapString, setup):
+def pause(track, fastestLapString, setup, holdLaps):
     click = False
-    inSaveSession = True
+    paused = True
 
-    while inSaveSession:
+    while paused:
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -713,33 +719,64 @@ def saveSession(track, fastestLapString, setup):
                     click = True
 
         screen.fill(blue)
-        drawText("Save session or change setup", font, black, screen, 20, 20)
+        drawText("Pause", font, black, screen, 20, 20)
 
         mx, my = pygame.mouse.get_pos()
 
+        resumeButton = pygame.Rect(screenWidth/2-150, 100, 300, 50)
         leaderboardButton = pygame.Rect(screenWidth/2-150, 200, 300, 50)
         setupButton = pygame.Rect(screenWidth/2-150, 300, 300, 50)
+        trackButton = pygame.Rect(screenWidth/2-150, 400, 300, 50)
 
         if setupButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, setupButton)
             pygame.draw.rect(screen, yellow, leaderboardButton)
+            pygame.draw.rect(screen, yellow, resumeButton)
+            pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
-                inSaveSession = False
+                paused = False
+                holdLaps = []
                 setupMenu(track)
         elif leaderboardButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, leaderboardButton)
             pygame.draw.rect(screen, yellow, setupButton)
+            pygame.draw.rect(screen, yellow, resumeButton)
+            pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
-                inSaveSession = False
+                paused = False
+                holdLaps = []
                 saveToLeaderboard(track, fastestLapString, setup)
+        elif resumeButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, resumeButton)
+            pygame.draw.rect(screen, yellow, setupButton)
+            pygame.draw.rect(screen, yellow, leaderboardButton)
+            pygame.draw.rect(screen, yellow, trackButton)
+            if click == True:
+                paused = False
+                drive(track, setup, holdLaps)
+        elif trackButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, trackButton)
+            pygame.draw.rect(screen, yellow, setupButton)
+            pygame.draw.rect(screen, yellow, leaderboardButton)
+            pygame.draw.rect(screen, yellow, resumeButton)
+            if click == True:
+                paused = False
+                holdLaps = []
+                trackMenu()
         else:
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellow, leaderboardButton)
+            pygame.draw.rect(screen, yellow, resumeButton)
+            pygame.draw.rect(screen, yellow, trackButton)
 
         leaderText = font.render("Save this session", True, (0, 0, 0))
         setupText = font.render("Change setup", True, (0, 0, 0))
+        resumeText = font.render("Continue driving", True, (0, 0, 0))
+        trackText = font.render("Change track", True, (0, 0, 0))
         screen.blit(leaderText, (leaderboardButton.center[0]-80, leaderboardButton.center[1]-10))
         screen.blit(setupText, (setupButton.center[0]-70, setupButton.center[1]-10))
+        screen.blit(resumeText, (resumeButton.center[0]-80, resumeButton.center[1]-10))
+        screen.blit(trackText, (trackButton.center[0]-70, trackButton.center[1]-10))
 
         pygame.display.flip()
         clock.tick(60)
@@ -791,6 +828,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
     while saving:
         screen.fill(blue)
         drawText("Save session to leaderboard", font, black, screen, 20, 20)
+        drawText("Enter a user name", font, black, screen, screenWidth/2-80, 100)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -852,6 +890,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
         clock.tick(60)
 
 def displayLeaderboard(track):
+    #DISPLAY THE TOP 10 LAPS AS BUTTONS THAT USERS CAN CLICK TO LOAD THE SETUP USED TO SET THE LAP
     onLeaderboard = True
 
     while onLeaderboard:
