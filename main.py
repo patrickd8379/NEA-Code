@@ -668,7 +668,7 @@ def drive(track, setup):
                 sys.exit()
         if keys[pygame.K_ESCAPE] == True:
             driving = False
-            saveSession(track, lapTimer)
+            saveSession(track, fastestLapString)
         if keys[pygame.K_w] == True:
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] == True:
@@ -698,10 +698,8 @@ def drive(track, setup):
 
         clock.tick(60)
 
-def saveSession(track, lapTimer):
-
+def saveSession(track, fastestLapString):
     click = False
-
     inSaveSession = True
 
     while inSaveSession:
@@ -725,9 +723,15 @@ def saveSession(track, lapTimer):
         if setupButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, setupButton)
             pygame.draw.rect(screen, yellow, leaderboardButton)
+            if click == True:
+                inSaveSession = False
+                setupMenu(track)
         elif leaderboardButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, leaderboardButton)
             pygame.draw.rect(screen, yellow, setupButton)
+            if click == True:
+                inSaveSession = False
+                saveToLeaderboard(track, fastestLapString)
         else:
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellow, leaderboardButton)
@@ -739,5 +743,114 @@ def saveSession(track, lapTimer):
 
         pygame.display.flip()
         clock.tick(60)
+
+def getTotalLap(lap):
+    lap = "".join(lap.split(":"))
+    lap = "".join(lap.split("."))
+    print(lap)
+    return int(lap)
+
+def saveToLeaderboard(track, fastestLapString):
+    saving = True
+    click = False
+    notSaving = False
+    userName = ""
+    leaderboard = track.leaderboard
+
+    if fastestLapString == "":
+        notSaving = True
+
+    while notSaving:
+        screen.fill(blue)
+        drawText("No valid laps were set in that session", font, black, screen, 200, 250)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        mx, my = pygame.mouse.get_pos()
+
+        backText = font.render("End Session", True, (0, 0, 0))
+        backButton = pygame.Rect(screenWidth/2-100, 300, 200, 50)
+
+        if backButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, backButton)
+            if click == True:
+                notSaving = False
+                trackMenu()
+        else:
+            pygame.draw.rect(screen, yellow, backButton)
+
+        screen.blit(backText, (backButton.center[0]-60, backButton.center[1]-10))
+        pygame.display.flip()
+        clock.tick(60)
+
+    while saving:
+        screen.fill(blue)
+        drawText("Save session to leaderboard", font, black, screen, 20, 20)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_BACKSPACE and len(userName) > 0:
+                    userName = userName [:-1]
+                else:
+                    userName += event.unicode
+
+        submitButton = pygame.Rect(screenWidth/2-100, 300, 200, 50)
+        submitText = font.render("Submit", True, (0, 0, 0))
+
+        userNameText = font.render(userName, True, (0, 0, 0))
+        userNameBox = userNameText.get_rect()
+
+        mx, my = pygame.mouse.get_pos()
+
+        if submitButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, submitButton)
+            if click == True:
+                leaderLaps = track.leaderboard.readlines()
+                leaderLaps = [lap.rstrip[2:] for lap in leaderLaps]
+                positionFound = False
+                position = 0
+                totalLap = getTotalLap(fastestLapString)
+                if len(leaderLaps) == 0:
+                    positionFound = True
+                while positionFound == False:
+                    currentLap = getTotalLap(leaderLaps[position])
+                    if totalLap < currentLap:
+                        positionFound = True
+                    else:
+                        position += 1
+                leaderLaps.insert(position, str(fastestLapString + " " + userName))
+                leaderBoardPos = 1
+                while len(leaderLaps) > 0:
+                    track.leaderboard.write(str(position) + " " + leaderLaps[0])
+                    leaderLaps.remove(leaderLaps[0])
+                    leaderBoardPos += 1
+                trackMenu()
+                saving = False
+        else:
+            pygame.draw.rect(screen, yellow, submitButton)
+
+        screen.blit(submitText, (submitButton.center[0]-30, submitButton.center[1]-10))
+        screen.blit(userNameText, ((screenWidth/2-userNameBox.width/2), (screenHeight/2-userNameBox.height/2)))
+        pygame.display.flip()
+        clock.tick(60)
+
+def displayLeaderboard(track):
+    onLeaderboard = True
+
+    while onLeaderboard:
+        screen.fill(blue)
+        pass
 
 mainMenu()
