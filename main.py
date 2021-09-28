@@ -668,7 +668,7 @@ def drive(track, setup):
                 sys.exit()
         if keys[pygame.K_ESCAPE] == True:
             driving = False
-            saveSession(track, fastestLapString)
+            saveSession(track, fastestLapString, setup)
         if keys[pygame.K_w] == True:
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] == True:
@@ -698,7 +698,7 @@ def drive(track, setup):
 
         clock.tick(60)
 
-def saveSession(track, fastestLapString):
+def saveSession(track, fastestLapString, setup):
     click = False
     inSaveSession = True
 
@@ -731,7 +731,7 @@ def saveSession(track, fastestLapString):
             pygame.draw.rect(screen, yellow, setupButton)
             if click == True:
                 inSaveSession = False
-                saveToLeaderboard(track, fastestLapString)
+                saveToLeaderboard(track, fastestLapString, setup)
         else:
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellow, leaderboardButton)
@@ -749,7 +749,7 @@ def getTotalLap(lap):
     lap = "".join(lap.split("."))
     return int(lap)
 
-def saveToLeaderboard(track, fastestLapString):
+def saveToLeaderboard(track, fastestLapString, setup):
     saving = True
     click = False
     notSaving = False
@@ -834,7 +834,7 @@ def saveToLeaderboard(track, fastestLapString):
                         positionFound = True
                     else:
                         position += 1
-                leaderLaps.insert(position, str(fastestLapString + " " + userName))
+                leaderLaps.insert(position, str(fastestLapString + " " + userName+ " " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias)))
                 leaderBoardPos = 1
                 while len(leaderLaps) > 0:
                     track.leaderboard.write(str(leaderBoardPos) + " " + leaderLaps[0] + "\n")
