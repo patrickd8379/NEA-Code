@@ -38,8 +38,8 @@ class LapTimer():
         if self.milliseconds > 999:
             self.milliseconds -= 999
             self.seconds += 1
-        if self.seconds > 60:
-            self.seconds -= 60
+        if self.seconds > 59:
+            self.seconds = 0
             self.minutes += 1
         self.millisecondsAsString = ""
         self.secondsAsString = ""
@@ -828,7 +828,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
     while saving:
         screen.fill(blue)
         drawText("Save session to leaderboard", font, black, screen, 20, 20)
-        drawText("Enter a user name", font, black, screen, screenWidth/2-80, 100)
+        drawText("Enter a user name", font, black, screen, screenWidth/2-100, 100)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -842,6 +842,8 @@ def saveToLeaderboard(track, fastestLapString, setup):
                     userName = userName [:-1]
                 else:
                     userName += event.unicode
+
+        userName = userName[:15]
 
         submitButton = pygame.Rect(screenWidth/2-100, 300, 200, 50)
         submitText = font.render("Submit", True, (0, 0, 0))
@@ -892,9 +894,48 @@ def saveToLeaderboard(track, fastestLapString, setup):
 def displayLeaderboard(track):
     #DISPLAY THE TOP 10 LAPS AS BUTTONS THAT USERS CAN CLICK TO LOAD THE SETUP USED TO SET THE LAP
     onLeaderboard = True
+    click = False
+
+    leaderLaps = []
+    leaderLaps = track.leaderboard.readlines()
+    leaderLaps = [lap.rstrip("\n") for lap in leaderLaps]
+    leaderButtons = []
+
+    if len(leaderLaps) > 0:
+        for lap in leaderLaps:
+            leaderPos = int(lap[0])
+            leaderButton = pygame.Rect(screenWidth/2-300, leaderPos*60, 600, 50)
+            leaderButtons.append([leaderButton, lap])
+
+    leaderLaps = leaderLaps[:8]
 
     while onLeaderboard:
         screen.fill(blue)
-        pass
+        drawText("Leaderboard", font, black, screen, 20, 20)
 
-mainMenu()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    click = True
+
+        for button in leaderButtons:
+            pygame.draw.rect(screen, yellow, button[0])
+            buttonText = font.render(button[1], True, (0, 0, 0))
+            buttonTextBox = buttonText.get_rect()
+            screen.blit(buttonText, ((screenWidth/2-buttonTextBox.width/2), (button[0].y+15)))
+
+        pygame.display.flip()
+        clock.tick(60)
+
+trackName = "track3"
+trackLeaderboard = open("track3leaderboard.txt", "r+")
+trackImage = pygame.image.load(os.path.join('images', 'track3.png')).convert_alpha()
+trackImage = pygame.transform.scale(trackImage, (3656, 2704))
+trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
+trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
+track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
+displayLeaderboard(track)
+#mainMenu()
