@@ -238,7 +238,7 @@ def trackMenu():
             screen.blit(track1Preview, (30,105))
             if click == True:
                 trackName = "track1"
-                trackLeaderboard = open("track1leaderboard.txt", "r+")
+                trackLeaderboard = "track1leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track1.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track1terrain.png')).convert_alpha()
@@ -254,7 +254,7 @@ def trackMenu():
             screen.blit(track2Preview, (288,105))
             if click == True:
                 trackName = "track2"
-                trackLeaderboard = open("track2leaderboard.txt", "r+")
+                trackLeaderboard = "track2leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track2.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
@@ -270,7 +270,7 @@ def trackMenu():
             screen.blit(track3Preview, (545,105))
             if click == True:
                 trackName = "track3"
-                trackLeaderboard = open("track3leaderboard.txt", "r+")
+                trackLeaderboard = "track3leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track3.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
@@ -791,7 +791,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
     click = False
     notSaving = False
     userName = ""
-    leaderboard = track.leaderboard
+    leaderboard = open(track.leaderboard, "r+")
 
     if fastestLapString == "":
         notSaving = True
@@ -810,18 +810,18 @@ def saveToLeaderboard(track, fastestLapString, setup):
 
         mx, my = pygame.mouse.get_pos()
 
-        backText = font.render("End Session", True, (0, 0, 0))
-        backButton = pygame.Rect(screenWidth/2-100, 300, 200, 50)
+        endText = font.render("End Session", True, (0, 0, 0))
+        endButton = pygame.Rect(screenWidth/2-100, 300, 200, 50)
 
-        if backButton.collidepoint((mx, my)):
-            pygame.draw.rect(screen, yellowDark, backButton)
+        if endButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, endButton)
             if click == True:
                 notSaving = False
-                trackMenu()
+                displayLeaderboard(track, None)
         else:
-            pygame.draw.rect(screen, yellow, backButton)
+            pygame.draw.rect(screen, yellow, endButton)
 
-        screen.blit(backText, (backButton.center[0]-60, backButton.center[1]-10))
+        screen.blit(endText, (endButton.center[0]-60, endButton.center[1]-10))
         pygame.display.flip()
         clock.tick(60)
 
@@ -856,32 +856,41 @@ def saveToLeaderboard(track, fastestLapString, setup):
         if submitButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, submitButton)
             if click == True:
-                leaderLaps = track.leaderboard.readlines()
+                leaderLaps = leaderboard.readlines()
                 leaderLaps = [lap.rstrip("\n") for lap in leaderLaps]
-                leaderLaps = [lap[2:] for lap in leaderLaps]
-                print(leaderLaps)
-                track.leaderboard.seek(0)
-                track.leaderboard.truncate()
+                leaderLaps = [lap[5:] for lap in leaderLaps]
+                leaderboard.seek(0)
+                leaderboard.truncate()
                 positionFound = False
                 position = 0
                 totalLap = getTotalLap(fastestLapString)
-                if len(leaderLaps) == 0:
+                if len(leaderLaps) < 1:
                     positionFound = True
-                while positionFound == False and position < len(leaderLaps):
-                    currentLap = leaderLaps[position].split()
-                    currentLap = getTotalLap(currentLap[0])
-                    if totalLap < currentLap:
-                        positionFound = True
-                    else:
-                        position += 1
-                leaderLaps.insert(position, str(fastestLapString + " " + userName+ " " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias)))
+                else:
+                    while positionFound == False and position < len(leaderLaps):
+                        currentLap = leaderLaps[position].split(" | ")
+                        currentLap = getTotalLap(currentLap[0])
+                        if totalLap < currentLap and positionFound == False:
+                            positionFound = True
+                        else:
+                            position += 1
+                leaderLaps.insert(position, str(fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias)))
                 leaderBoardPos = 1
                 while len(leaderLaps) > 0:
-                    track.leaderboard.write(str(leaderBoardPos) + " " + leaderLaps[0] + "\n")
+                    if leaderBoardPos < 10:
+                        print(leaderLaps[0])
+                        leaderboard.write(str(leaderBoardPos) + "  | " + leaderLaps[0] + "\n")
+                    else:
+                        leaderboard.write(str(leaderBoardPos) + " | " + leaderLaps[0] + "\n")
                     leaderLaps.remove(leaderLaps[0])
                     leaderBoardPos += 1
-                track.leaderboard.close()
-                trackMenu()
+                leaderboard.close()
+                if position < 10:
+                    sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
+                else:
+                    sessionFastest = str(str([position+1]) + " | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
+                leaderboard = open(track.leaderboard, "r+")
+                displayLeaderboard(leaderboard, sessionFastest)
                 saving = False
         else:
             pygame.draw.rect(screen, yellow, submitButton)
@@ -891,23 +900,36 @@ def saveToLeaderboard(track, fastestLapString, setup):
         pygame.display.flip()
         clock.tick(60)
 
-def displayLeaderboard(track):
+def displayLeaderboard(leaderboard, sessionFastest):
     #DISPLAY THE TOP 10 LAPS AS BUTTONS THAT USERS CAN CLICK TO LOAD THE SETUP USED TO SET THE LAP
+    #DISPLAY TOP 9 PLUS FASTEST LAP FROM LAST SESSION IF USER JUST SAVED A SESSION
     onLeaderboard = True
     click = False
+    if sessionFastest == None:
+        sessionLapPresent = False
+    else:
+        sessionLapPresent = True
 
     leaderLaps = []
-    leaderLaps = track.leaderboard.readlines()
+    leaderLaps = leaderboard.readlines()
     leaderLaps = [lap.rstrip("\n") for lap in leaderLaps]
     leaderButtons = []
+    if sessionLapPresent == True:
+        if int(sessionFastest[:1]) > 9:
+            leaderLaps = leaderLaps[:9]
+            leaderLaps.append(sessionFastest)
+    else:
+        leaderLaps = leaderLaps[:10]
 
     if len(leaderLaps) > 0:
         for lap in leaderLaps:
-            leaderPos = int(lap[0])
-            leaderButton = pygame.Rect(screenWidth/2-300, leaderPos*60, 600, 50)
-            leaderButtons.append([leaderButton, lap])
-
-    leaderLaps = leaderLaps[:8]
+            currentLap = lap.split(" | ")
+            leaderPos = int(currentLap[0])
+            leaderButton = pygame.Rect(screenWidth/2-300, leaderPos*40, 600, 30)
+            if sessionLapPresent and sessionFastest == lap:
+                leaderButtons.append([leaderButton, lap, True])
+            else:
+                leaderButtons.append([leaderButton, lap, False])
 
     while onLeaderboard:
         screen.fill(blue)
@@ -922,20 +944,15 @@ def displayLeaderboard(track):
                     click = True
 
         for button in leaderButtons:
-            pygame.draw.rect(screen, yellow, button[0])
+            if button[2] == True:
+                pygame.draw.rect(screen, green, button[0])
+            else:
+                pygame.draw.rect(screen, yellow, button[0])
             buttonText = font.render(button[1], True, (0, 0, 0))
             buttonTextBox = buttonText.get_rect()
-            screen.blit(buttonText, ((screenWidth/2-buttonTextBox.width/2), (button[0].y+15)))
+            screen.blit(buttonText, ((screenWidth/2-buttonTextBox.width/2), (button[0].y+5)))
 
         pygame.display.flip()
         clock.tick(60)
 
-trackName = "track3"
-trackLeaderboard = open("track3leaderboard.txt", "r+")
-trackImage = pygame.image.load(os.path.join('images', 'track3.png')).convert_alpha()
-trackImage = pygame.transform.scale(trackImage, (3656, 2704))
-trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
-trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
-track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
-displayLeaderboard(track)
-#mainMenu()
+mainMenu()
