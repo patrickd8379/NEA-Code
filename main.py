@@ -288,6 +288,10 @@ def trackMenu():
 def setupMenu(track):
     inSetupMenu = True
 
+    leaderButtonRect = pygame.Rect(600, 52, 100, 207)
+    leaderButton = pygame.image.load(os.path.join('images', 'leaderButton.png')).convert_alpha()
+    leaderButtonSelected = pygame.image.load(os.path.join('images', 'leaderButtonSelected.png')).convert_alpha()
+
     driveButtonRect = pygame.Rect(600, 259, 100, 207)
     driveButton = pygame.image.load(os.path.join('images', 'driveButton.png')).convert_alpha()
     driveButtonSelected = pygame.image.load(os.path.join('images', 'driveButtonSelected.png')).convert_alpha()
@@ -366,37 +370,58 @@ def setupMenu(track):
 
         if fwSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 fwPickUp = True
         elif rwSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 rwPickUp = True
         elif gbSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 gbPickUp = True
         elif camberSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 camberPickUp = True
         elif toeSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 toePickUp = True
         elif bbSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 bbPickUp = True
         elif driveButtonRect.collidepoint((mx, my)):
             screen.blit(driveButtonSelected, (600, 259))
+            screen.blit(leaderButton, (600, 52))
             if click == True:
                 currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup)
                 drive(track, currentSetup, holdLaps)
                 inSetupMenu = False
+        elif leaderButtonRect.collidepoint((mx, my)):
+            screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButtonSelected, (600, 52))
+            if click == True:
+                leaderboard = open(track.leaderboard, "r+")
+                displayLeaderboard(leaderboard, None)
+                inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
             screen.blit(driveButton, (600, 259))
+            screen.blit(leaderButton, (600, 52))
 
         if fwPickUp == True:
             if mx < 28:
