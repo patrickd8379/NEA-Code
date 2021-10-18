@@ -370,41 +370,30 @@ def setupMenu(track):
 
         if fwSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            screen.blit(driveButton, (600, 259))
-            screen.blit(leaderButton, (600, 52))
             if click == True:
                 fwPickUp = True
         elif rwSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            screen.blit(driveButton, (600, 259))
-            screen.blit(leaderButton, (600, 52))
             if click == True:
                 rwPickUp = True
         elif gbSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            screen.blit(driveButton, (600, 259))
-            screen.blit(leaderButton, (600, 52))
             if click == True:
                 gbPickUp = True
         elif camberSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            screen.blit(driveButton, (600, 259))
-            screen.blit(leaderButton, (600, 52))
             if click == True:
                 camberPickUp = True
         elif toeSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            screen.blit(driveButton, (600, 259))
-            screen.blit(leaderButton, (600, 52))
             if click == True:
                 toePickUp = True
         elif bbSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            screen.blit(driveButton, (600, 259))
-            screen.blit(leaderButton, (600, 52))
             if click == True:
                 bbPickUp = True
-        elif driveButtonRect.collidepoint((mx, my)):
+
+        if driveButtonRect.collidepoint((mx, my)):
             screen.blit(driveButtonSelected, (600, 259))
             screen.blit(leaderButton, (600, 52))
             if click == True:
@@ -417,7 +406,7 @@ def setupMenu(track):
             screen.blit(leaderButtonSelected, (600, 52))
             if click == True:
                 leaderboard = open(track.leaderboard, "r+")
-                displayLeaderboard(leaderboard, None)
+                displayLeaderboard(track, leaderboard, None)
                 inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -916,7 +905,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
                 else:
                     sessionFastest = str(str([position+1]) + " | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
                 leaderboard = open(track.leaderboard, "r+")
-                displayLeaderboard(leaderboard, sessionFastest)
+                displayLeaderboard(track, leaderboard, sessionFastest)
                 saving = False
         else:
             pygame.draw.rect(screen, yellow, submitButton)
@@ -926,7 +915,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
         pygame.display.flip()
         clock.tick(60)
 
-def displayLeaderboard(leaderboard, sessionFastest):
+def displayLeaderboard(track, leaderboard, sessionFastest):
     #DISPLAY THE TOP 10 LAPS AS BUTTONS THAT USERS CAN CLICK TO LOAD THE SETUP USED TO SET THE LAP
     #DISPLAY TOP 9 PLUS FASTEST LAP FROM LAST SESSION IF USER JUST SAVED A SESSION
     onLeaderboard = True
@@ -957,9 +946,19 @@ def displayLeaderboard(leaderboard, sessionFastest):
             else:
                 leaderButtons.append([leaderButton, lap, False])
 
+    setupButton = pygame.Rect(screenWidth/2-300, screenHeight-50, 300, 30)
+    setupText = font.render("Setup Menu", True, (0, 0, 0))
+    setupTextRect = setupText.get_rect()
+
+    trackButton = pygame.Rect(screenWidth/2, screenHeight-50, 300, 30)
+    trackText = font.render("Track Menu", True, (0, 0, 0))
+    trackTextRect = trackText.get_rect()
+
     while onLeaderboard:
         screen.fill(blue)
         drawText("Leaderboard", font, black, screen, 20, 20)
+
+        mx, my = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -977,6 +976,25 @@ def displayLeaderboard(leaderboard, sessionFastest):
             buttonText = font.render(button[1], True, (0, 0, 0))
             buttonTextBox = buttonText.get_rect()
             screen.blit(buttonText, ((screenWidth/2-buttonTextBox.width/2), (button[0].y+5)))
+
+        if setupButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellowDark, setupButton)
+            pygame.draw.rect(screen, yellow, trackButton)
+            if click == True:
+                onLeaderboard = False
+                setupMenu(track)
+        elif trackButton.collidepoint((mx, my)):
+            pygame.draw.rect(screen, yellow, setupButton)
+            pygame.draw.rect(screen, yellowDark, trackButton)
+            if click == True:
+                onLeaderboard = False
+                trackMenu()
+        else:
+            pygame.draw.rect(screen, yellow, setupButton)
+            pygame.draw.rect(screen, yellow, trackButton)
+
+        screen.blit(setupText, (setupButton.center[0]-setupTextRect.width/2, setupButton.center[1]-setupTextRect.height/2))
+        screen.blit(trackText, (trackButton.center[0]-trackTextRect.width/2, trackButton.center[1]-trackTextRect.height/2))
 
         pygame.display.flip()
         clock.tick(60)
