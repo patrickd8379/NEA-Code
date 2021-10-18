@@ -409,7 +409,8 @@ def setupMenu(track):
             screen.blit(leaderButton, (600, 52))
             if click == True:
                 currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup)
-                drive(track, currentSetup, holdLaps)
+                currentFastest = [math.inf, ""]
+                drive(track, currentSetup, holdLaps, currentFastest)
                 inSetupMenu = False
         elif leaderButtonRect.collidepoint((mx, my)):
             screen.blit(driveButton, (600, 259))
@@ -643,23 +644,21 @@ def getValidLap(section, validLap):
     return validLap
 
 def resetToStart(racecar, track):
-    validLap = False
-    currentSector = 3
     racecar.speed = 0
     racecar.heading = 0
     racecar.image = racecar.rotImg[0]
     racecar.position = track.spawnPoint
 
-def drive(track, setup, holdLaps):
+def drive(track, setup, holdLaps, currentFastest):
 
     racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup.frontWing, setup.rearWing, setup.camber, setup.toe, setup.gear, setup.brakeBias)
     racecarGroup = pygame.sprite.Group()
     racecarGroup.add(racecar)
 
     lapTimer = LapTimer()
-    fastestLap = math.inf
-    fastestLapString = ""
-    currentLap = 0
+    fastestLap = currentFastest[0]
+    fastestLapString = currentFastest[1]
+    currentLap = len(holdLaps)
     currentSector = 3
     validLap = False
     if len(holdLaps) > 0:
@@ -699,21 +698,23 @@ def drive(track, setup, holdLaps):
         if keys[pygame.K_ESCAPE] == True:
             driving = False
             holdLaps = laps
-            pause(track, fastestLapString, setup, holdLaps)
-        if keys[pygame.K_w] == True:
+            currentFastest = [fastestLap, fastestLapString]
+            pause(track, fastestLapString, setup, holdLaps, currentFastest)
+        if keys[pygame.K_w] or keys[pygame.K_UP] == True:
             racecar.accelerate(modifier)
-        elif keys[pygame.K_s] == True:
+        elif keys[pygame.K_s] or keys[pygame.K_DOWN] == True:
             racecar.brake(modifier)
         else:
             racecar.coast(modifier)
-        if keys[pygame.K_a] == True:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT] == True:
             racecar.getTurnAngle(modifier)
             racecar.turn(-racecar.turnAngle)
-        elif keys[pygame.K_d] == True:
+        elif keys[pygame.K_d] or keys[pygame.K_RIGHT] == True:
             racecar.getTurnAngle(modifier)
             racecar.turn(racecar.turnAngle)
         if keys[pygame.K_r] == True:
             currentSector = 3
+            validLap = False
             resetToStart(racecar, track)
 
         racecar.update()
@@ -729,7 +730,7 @@ def drive(track, setup, holdLaps):
 
         clock.tick(60)
 
-def pause(track, fastestLapString, setup, holdLaps):
+def pause(track, fastestLapString, setup, holdLaps, currentFastest):
     click = False
     paused = True
 
@@ -778,7 +779,7 @@ def pause(track, fastestLapString, setup, holdLaps):
             pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
                 paused = False
-                drive(track, setup, holdLaps)
+                drive(track, setup, holdLaps, currentFastest)
         elif trackButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, trackButton)
             pygame.draw.rect(screen, yellow, setupButton)
