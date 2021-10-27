@@ -2,7 +2,7 @@ import pygame, sys, math, os, tracks
 pygame.init()
 clock = pygame.time.Clock()
 
-class Track():
+class Track(): #Properties of the track
     def __init__(self, trackName, trackLeaderboard, trackImage, trackTerrain, x, y, trackSections, trackSectors):
         self.name = trackName
         self.leaderboard = trackLeaderboard
@@ -15,7 +15,7 @@ class Track():
     def getTrackLeaderboard():
         return self.trackLeaderboard
 
-class Setup():
+class Setup(): #The setup of the car
     def __init__(self, frontWing, rearWing, camber, toe, gear, brake):
         self.frontWing = frontWing #1-5
         self.rearWing = rearWing #1-5
@@ -23,17 +23,18 @@ class Setup():
         self.toe = toe #1-5
         self.gear = gear #1-5
         self.brakeBias = brake #1-5
+        self.setupAsList = [self.frontWing, self.rearWing, self.camber, self.toe, self.gear, self.brakeBias]
 
-class LapTimer():
+class LapTimer(): #The timer which is displayed during gameplay
     def __init__(self):
         self.milliseconds = 0
         self.millisecondsAsString = "000"
         self.seconds = 0
         self.secondsAsString = "00"
         self.minutes = 0
-        self.currentLapTime = str(self.minutes)+":"+self.secondsAsString+"."+self.millisecondsAsString
-        self.totalLap = str(self.minutes)+self.secondsAsString+self.millisecondsAsString
-    def updateTimer(self):
+        self.currentLapTime = str(self.minutes)+":"+self.secondsAsString+"."+self.millisecondsAsString #The laptime that will be displayed in gameplay
+        self.totalLap = str(self.minutes)+self.secondsAsString+self.millisecondsAsString #A numerical value for the laptime
+    def updateTimer(self): #Increment the timer and update the totalLap
         self.milliseconds += int((1/60)*1000)
         if self.milliseconds > 999:
             self.milliseconds -= 999
@@ -53,21 +54,21 @@ class LapTimer():
         self.secondsAsString += str(self.seconds)
         self.currentLapTime = str(self.minutes)+":"+self.secondsAsString+"."+self.millisecondsAsString
         self.totalLap = str(self.minutes)+self.secondsAsString+self.millisecondsAsString
-    def resetTimer(self):
+    def resetTimer(self): #Reset the timer and return the lap
         self.milliseconds = 0
         self.seconds = 0
         self.minutes = 0
         return self.currentLapTime, int(self.totalLap)
-    def getCurrentTime(self):
+    def getCurrentTime(self): #Show the current time
         return self.currentLapTime
 
-class Racecar(pygame.sprite.Sprite):
+class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
     def __init__(self, x, y, frontWing, rearWing, camber, toe, gear, brakeBias, rotations=360):
         super().__init__()
         pygame.sprite.Sprite.__init__(self)
         self.rotImg   = []
         self.minAngle = (360/rotations)
-        for i in range(rotations):
+        for i in range(rotations): #Create rotated versions of the car sprite
             rotatedImage = pygame.transform.rotozoom(racecarImage, 360-90-(i*self.minAngle), 1)
             self.rotImg.append(rotatedImage)
         self.minAngle = math.radians(self.minAngle)
@@ -79,10 +80,10 @@ class Racecar(pygame.sprite.Sprite):
         self.y = y
         self.velocity = pygame.math.Vector2(0, 0)
         self.position = pygame.math.Vector2(x, y)
-        self.fr = pygame.math.Vector2(x+int(self.rect.width/2), y+int(self.rect.height/2))
-        self.fl = pygame.math.Vector2(x+int(self.rect.width/2), y-int(self.rect.height/2))
-        self.rr = pygame.math.Vector2(x-int(self.rect.width/2), y+int(self.rect.height/2))
-        self.rl = pygame.math.Vector2(x-int(self.rect.width/2), y-int(self.rect.height/2))
+        self.fr = pygame.math.Vector2(int(x+self.rect.width/2), int(y+self.rect.height/2)) #Corners of the car
+        self.fl = pygame.math.Vector2(int(x+self.rect.width/2), int(y-self.rect.height/2))
+        self.rr = pygame.math.Vector2(int(x-self.rect.width/2), int(y+self.rect.height/2))
+        self.rl = pygame.math.Vector2(int(x-self.rect.width/2), int(y-self.rect.height/2))
         self.rect.center = self.position
         self.frontWing = frontWing
         self.rearWing = rearWing
@@ -91,11 +92,11 @@ class Racecar(pygame.sprite.Sprite):
         self.gear = gear
         self.brakeBias = brakeBias
         self.turnAngle = 0
-        self.topSpeed = (8-(self.rearWing*0.1)-(self.frontWing*0.02)+(self.gear*0.1)-(self.camber*0.01)-(self.toe*0.01))
-        self.acceleration = (0.1-(self.gear*0.01))
-        self.deceleration = (0.3-(self.brakeBias*0.04))
-    def turn(self, angle_degrees):
-        if self.speed > 0:
+        self.topSpeed = (8-(self.rearWing*0.1)-(self.frontWing*0.02)+(self.gear*0.1)-(self.camber*0.01)-(self.toe*0.01)) #Top speed affected by setup choices
+        self.acceleration = (0.1-(self.gear*0.01)) #Acceleration affected by gearing choice
+        self.deceleration = (0.3-(self.brakeBias*0.04)) #Deceleration affected by brake bias
+    def turn(self, angle_degrees): #Change the way the car is pointing
+        if abs(self.speed) > 0:
             self.heading += math.radians(angle_degrees)
             imageIndex = int(self.heading/self.minAngle) % len(self.rotImg)
             if (self.image != self.rotImg[imageIndex]):
@@ -103,26 +104,26 @@ class Racecar(pygame.sprite.Sprite):
                 self.image = self.rotImg[imageIndex]
                 self.rect  = self.image.get_rect()
                 self.rect.center = (x,y)
-    def accelerate(self, modifier):
-        if self.speed < self.topSpeed*modifier:
+    def accelerate(self, modifier): #Increase the speed of the car
+        if self.speed < self.topSpeed*modifier: #Check if the car can go any faster on this terrain
             self.speed += (self.acceleration*modifier)
         else:
             self.speed = self.topSpeed*modifier
-    def brake(self, modifier):
+    def brake(self, modifier): #Decrease the speed of the car
         if modifier == 0:
             self.speed = 0
         elif self.speed-self.deceleration > 0:
             self.speed -= self.deceleration
         elif self.speed-self.deceleration < 0 :
             self.speed = 0
-    def coast(self, modifier):
+    def coast(self, modifier): #Slowly decrease the speed of the car
         if modifier == 0:
             self.speed = 0
         if self.speed > 0.1:
             self.speed -= 0.01
         if self.speed == 0.1:
             self.speed = 0
-    def update(self):
+    def update(self): #Move the car based on its speed and heading
         self.velocity.from_polar((self.speed, math.degrees(self.heading)))
         self.position += self.velocity
         self.fr += self.velocity
@@ -130,12 +131,17 @@ class Racecar(pygame.sprite.Sprite):
         self.rr += self.velocity
         self.rl += self.velocity
         self.rect.center = (round(self.position[0]), round(self.position[1]))
-    def getTurnAngle(self, modifier):
-        if self.speed <= self.topSpeed/2:
+    def getTurnAngle(self, modifier): #How quickly the car turns
+        if abs(self.speed) <= self.topSpeed/2:
             self.turnAngle = (2+(self.toe*0.1)+(self.camber*0.1)+(self.frontWing*0.1))*modifier
         else:
             self.turnAngle = (2+(self.rearWing*0.2)+(self.frontWing*0.1))*modifier
         return self.turnAngle
+    def reverse(self, modifier): #Move backwards
+        if abs(self.speed) < 3*modifier:
+            self.speed -= (self.acceleration*modifier)
+        else:
+            self.speed = -3*modifier
 
 screenWidth = 750
 screenHeight = 500
@@ -157,6 +163,8 @@ greenDark = (53, 189, 28)
 racecarImage = pygame.image.load(os.path.join('images', 'racecar.png')).convert_alpha()
 
 holdLaps = []
+
+defaultSetup = [3, 3, 3, 3, 3, 3]
 
 def drawText(text, font, color, surface, x, y): #Function to draw text
     textObj = font.render(text, 1, color)
@@ -189,10 +197,10 @@ def mainMenu():
 
         mx, my = pygame.mouse.get_pos()
 
-        if startButton.collidepoint((mx, my)):
+        if startButton.collidepoint((mx, my)): #If the mouse is in contact with the button
             pygame.draw.rect(screen, yellowDark, startButton)
             if click == True:
-                trackMenu()
+                trackMenu() #Go to the track menu
         else:
             pygame.draw.rect(screen, yellow, startButton)
 
@@ -236,7 +244,7 @@ def trackMenu():
         if track1Button.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, track1Button)
             screen.blit(track1Preview, (30,105))
-            if click == True:
+            if click == True: #Track 1 is selected and loaded
                 trackName = "track1"
                 trackLeaderboard = "track1leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track1.png')).convert_alpha()
@@ -245,30 +253,30 @@ def trackMenu():
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 700, 500, tracks.track1, tracks.track1Sectors)
                 inTrackMenu = False
-                setupMenu(track)
+                setupMenu(track, defaultSetup) #Go to the setup menu with the track that has been opened
         else:
             pygame.draw.rect(screen, yellow, track1Button)
             screen.blit(track1Preview, (30,105))
         if track2Button.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, track2Button)
             screen.blit(track2Preview, (288,105))
-            if click == True:
+            if click == True: #Track 2 is selected and loaded
                 trackName = "track2"
                 trackLeaderboard = "track2leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track2.png')).convert_alpha()
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
-                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 1000, tracks.track2, tracks.track2Sectors)
+                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 2000, 1500, tracks.track2, tracks.track2Sectors)
                 inTrackMenu = False
-                setupMenu(track)
+                setupMenu(track, defaultSetup)
         else:
             pygame.draw.rect(screen, yellow, track2Button)
             screen.blit(track2Preview, (288,105))
         if track3Button.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, track3Button)
             screen.blit(track3Preview, (545,105))
-            if click == True:
+            if click == True: #Track 3 is selected and loaded
                 trackName = "track3"
                 trackLeaderboard = "track3leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track3.png')).convert_alpha()
@@ -277,7 +285,7 @@ def trackMenu():
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
                 track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
                 inTrackMenu = False
-                setupMenu(track)
+                setupMenu(track, defaultSetup)
         else:
             pygame.draw.rect(screen, yellow, track3Button)
             screen.blit(track3Preview, (545,105))
@@ -285,7 +293,7 @@ def trackMenu():
         pygame.display.update()
         clock.tick(60)
 
-def setupMenu(track):
+def setupMenu(track, currentSetup):
     inSetupMenu = True
 
     leaderButtonRect = pygame.Rect(600, 52, 100, 207)
@@ -299,32 +307,26 @@ def setupMenu(track):
     fwImage = pygame.image.load(os.path.join('images', 'frontWingSetup.png')).convert_alpha()
     fwSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     fwSelector = fwSelectorImage.get_rect()
-    fwSelector.center = (102, 188)
 
     rwImage = pygame.image.load(os.path.join('images', 'rearWingSetup.png')).convert_alpha()
     rwSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     rwSelector = rwSelectorImage.get_rect()
-    rwSelector.center = (300, 188)
 
     gbImage = pygame.image.load(os.path.join('images', 'gearRatioSetup.png')).convert_alpha()
     gbSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     gbSelector = gbSelectorImage.get_rect()
-    gbSelector.center = (495, 188)
 
     camberImage = pygame.image.load(os.path.join('images', 'camberSetup.png')).convert_alpha()
     camberSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     camberSelector = camberSelectorImage.get_rect()
-    camberSelector.center = (105, 395)
 
     toeImage = pygame.image.load(os.path.join('images', 'toeSetup.png')).convert_alpha()
     toeSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     toeSelector = toeSelectorImage.get_rect()
-    toeSelector.center = (300, 395)
 
     bbImage = pygame.image.load(os.path.join('images', 'brakeSetup.png')).convert_alpha()
     bbSelectorImage = pygame.image.load(os.path.join('images', 'selector.png')).convert_alpha()
     bbSelector = bbSelectorImage.get_rect()
-    bbSelector.center = (495, 395)
 
     click = False
     fwPickUp = False
@@ -334,12 +336,30 @@ def setupMenu(track):
     toePickUp = False
     bbPickUp = False
 
-    fwSetup = 3
-    rwSetup = 3
-    gbSetup = 3
-    camberSetup = 3
-    toeSetup = 3
-    bbSetup = 3
+    fwSetup = currentSetup[0]
+    rwSetup = currentSetup[1]
+    gbSetup = currentSetup[2]
+    camberSetup = currentSetup[3]
+    toeSetup = currentSetup[4]
+    bbSetup = currentSetup[5]
+
+    fwSelectorPositions = {1:28, 2:65, 3:102, 4:139, 5:177}
+    fwSelector.center = (fwSelectorPositions[fwSetup], 188)
+
+    rwSelectorPositions = {1:224, 2:263, 3:300, 4:337, 5:372}
+    rwSelector.center = (rwSelectorPositions[rwSetup], 188)
+
+    gbSelectorPositions = {1:419, 2:458, 3:495, 4:532, 5:567}
+    gbSelector.center = (gbSelectorPositions[gbSetup], 188)
+
+    camberSelectorPositions = {1:28, 2:65, 3:102, 4:139, 5:177}
+    camberSelector.center = (camberSelectorPositions[camberSetup], 395)
+
+    toeSelectorPositions = {1:224, 2:263, 3:300, 4:337, 5:372}
+    toeSelector.center = (toeSelectorPositions[toeSetup], 395)
+
+    bbSelectorPositions = {1:419, 2:458, 3:495, 4:532, 5:567}
+    bbSelector.center = (bbSelectorPositions[bbSetup], 395)
 
     while inSetupMenu:
 
@@ -360,7 +380,7 @@ def setupMenu(track):
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     click = False
-                    fwPickUp = False
+                    fwPickUp = False #Drop any dragable objects
                     rwPickUp = False
                     gbPickUp = False
                     camberPickUp = False
@@ -368,9 +388,13 @@ def setupMenu(track):
                     bbPickUp = False
         mx, my = pygame.mouse.get_pos()
 
+        holding = False
+        if fwPickUp == True or rwPickUp == True or gbPickUp == True or camberPickUp == True or toePickUp == True or bbPickUp == True:
+            holding = True
+
         if fwSelector.collidepoint((mx, my)):
-            pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
-            if click == True:
+            pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND) #Show the cursor as a hand
+            if click == True: #Pick up that selector
                 fwPickUp = True
         elif rwSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
@@ -393,20 +417,20 @@ def setupMenu(track):
             if click == True:
                 bbPickUp = True
 
-        if driveButtonRect.collidepoint((mx, my)):
+        if driveButtonRect.collidepoint((mx, my)) and holding == False:
             screen.blit(driveButtonSelected, (600, 259))
             screen.blit(leaderButton, (600, 52))
             if click == True:
-                currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup)
-                currentFastest = [math.inf, ""]
-                drive(track, currentSetup, holdLaps, currentFastest)
+                currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup) #Create a setup from inputs
+                currentFastest = [math.inf, ""] #Reset currentFastest
+                drive(track, currentSetup, holdLaps, currentFastest) #Drive on track
                 inSetupMenu = False
-        elif leaderButtonRect.collidepoint((mx, my)):
+        elif leaderButtonRect.collidepoint((mx, my)) and holding == False:
             screen.blit(driveButton, (600, 259))
             screen.blit(leaderButtonSelected, (600, 52))
             if click == True:
-                leaderboard = open(track.leaderboard, "r+")
-                displayLeaderboard(track, leaderboard, None)
+                leaderboard = open(track.leaderboard, "r+") #Open the leaderboard
+                displayLeaderboard(track, leaderboard, None) #Go to the leaderboard
                 inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -414,7 +438,7 @@ def setupMenu(track):
             screen.blit(leaderButton, (600, 52))
 
         if fwPickUp == True:
-            if mx < 28:
+            if mx < 28: #Positions that the selector can be dragged to to change that component
                 fwSelector.center = (28, 188)
             elif 28 <= mx <= 36:
                 fwSetup = 1
@@ -555,19 +579,19 @@ def setupMenu(track):
         pygame.display.update()
         clock.tick(60)
 
-def getTrackSection(racecar, track):
-    colourAtRL = (track.terrain.get_at(((racecar.rect.center[0]+375), (racecar.rect.center[1]+251))))[:3]
-    colourAtRR = (track.terrain.get_at(((racecar.rect.center[0]+375), (racecar.rect.center[1]+269))))[:3]
-    colourAtFL = (track.terrain.get_at(((racecar.rect.center[0]+405), (racecar.rect.center[1]+251))))[:3]
-    colourAtFR = (track.terrain.get_at(((racecar.rect.center[0]+405), (racecar.rect.center[1]+269))))[:3]
+def getTrackSection(racecar, track): #Find the section of the track the car is on
+    colourAtRL = (track.terrain.get_at((int(racecar.rl[0]+390), int(racecar.rl[1]+265))))[:3] #Find the colour on the terrain map that each corner of the car is on
+    colourAtRR = (track.terrain.get_at((int(racecar.rr[0]+390), int(racecar.rr[1]+265))))[:3]
+    colourAtFL = (track.terrain.get_at((int(racecar.fl[0]+390), int(racecar.fl[1]+265))))[:3]
+    colourAtFR = (track.terrain.get_at((int(racecar.fr[0]+390), int(racecar.fr[1]+265))))[:3]
     frDone = False
     flDone = False
     rrDone = False
     rlDone = False
-    sectionsIn = []
-    wheelsOff = 0
+    sectionsIn = [] #Sections that the car is in
+    wheelsOff = 0 #The amount of corners of the car that are off the track
     for section in track.sections:
-        if flDone == False and colourAtFL == section[1]:
+        if flDone == False and colourAtFL == section[1]: #If that corner of the car has not been found in a section yet
             sectionsIn.append(section)
             flDone = True
         if frDone == False and colourAtFR == section[1]:
@@ -580,29 +604,29 @@ def getTrackSection(racecar, track):
             sectionsIn.append(section)
             rrDone = True
 
-    for section in sectionsIn:
-        if section[2][1] == "Wall":
+    for section in sectionsIn: #Decide which section will be used to effect the car performance
+        if section[2][1] == "Wall": #Wall has highest priority and will be applied immediately if touched
             return section
-        if section[3] == False:
+        if section[3] == False: #If one corner of the car is in a section out of track limits, it is recorded as a wheel off
             wheelsOff += 1
-    if wheelsOff > 2:
-        for section in sectionsIn:
+    if wheelsOff > 2: #If more than 2 wheels are off the track, the car is considered off the track and effects of the off-track sections are applied
+        for section in sectionsIn: #Applies the effects of either gravel, track, or grass
             if section[2][1] == "Gravel":
                 return section
             elif section[2][1] == "Track":
                 return section
             else:
-                return section
-    else:
+                return section #The section is grass terrain
+    else: #The car is in track limits
         for section in sectionsIn:
-            if section[2][1] != "Track":
+            if section[2][1] != "Track": #Sections that aren't track are ignored
                 sectionsIn.remove(section)
-        if sectionsIn[0][0] > sectionsIn[1][0]:
+        if sectionsIn[0][0] > sectionsIn[1][0]: #Returns the later section on the track
             return sectionsIn[0]
         else:
             return sectionsIn[1]
 
-def getFastestLap(lapToAdd, fastestLap, fastestLapString):
+def getFastestLap(lapToAdd, fastestLap, fastestLapString): #Find the fastesst lap
     print(lapToAdd, fastestLap)
     if lapToAdd[2] == True:
         if lapToAdd[3] < fastestLap:
@@ -610,47 +634,37 @@ def getFastestLap(lapToAdd, fastestLap, fastestLapString):
             fastestLapString = lapToAdd[1]
     return fastestLap, fastestLapString
 
-#def getTrackSector(currentSector, section, track, lapTimer, currentLap, validLap, laps, fastestLap, fastestLapString):
-    #if currentSector == 3 and section[0] == track.sectors[0]:
-        #currentSector = 1
-        #lapTime, lapTotal = lapTimer.resetTimer()
-        #lapToAdd = [currentLap, lapTime, validLap, lapTotal]
-        #laps.append(lapToAdd)
-        #fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
-        #validLap = True
-        #currentLap += 1
-    #elif currentSector == 1 and section[0] == track.sectors[1]:
-        #currentSector = 2
-    #elif currentSector == 2 and section[0] == track.sectors[2]:
-        #currentSector = 3
-    #return validLap, currentLap, currentSector
-
-def getValidLap(section, validLap):
-    if validLap == False:
+def getValidLap(section, validLap): #Check if the lap is valid
+    if validLap == False: #Stays false if its false
         return False
-    elif section[3] == False:
+    elif section[3] == False: #If the current section is out of track limits, the lap is invalidated
         validLap = False
     return validLap
 
-def resetToStart(racecar, track):
+def resetToStart(racecar, track): #Stop the car and return it to the start
     racecar.speed = 0
     racecar.heading = 0
+    racecar.fr = pygame.math.Vector2(int(racecar.x+racecar.rect.width/2), int(racecar.y+racecar.rect.height/2))
+    racecar.fl = pygame.math.Vector2(int(racecar.x+racecar.rect.width/2), int(racecar.y-racecar.rect.height/2))
+    racecar.rr = pygame.math.Vector2(int(racecar.x-racecar.rect.width/2), int(racecar.y+racecar.rect.height/2))
+    racecar.rl = pygame.math.Vector2(int(racecar.x-racecar.rect.width/2), int(racecar.y-racecar.rect.height/2))
     racecar.image = racecar.rotImg[0]
     racecar.position = track.spawnPoint
 
 def drive(track, setup, holdLaps, currentFastest):
 
+    #Creating the car
     racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup.frontWing, setup.rearWing, setup.camber, setup.toe, setup.gear, setup.brakeBias)
     racecarGroup = pygame.sprite.Group()
     racecarGroup.add(racecar)
 
     lapTimer = LapTimer()
-    fastestLap = currentFastest[0]
-    fastestLapString = currentFastest[1]
-    currentLap = len(holdLaps)
+    fastestLap = currentFastest[0] #Defaults to infinity. If continuing after a pause, previous fastest lap is stored
+    fastestLapString = currentFastest[1] #Defaults to "". If continuing after a pause, string of the previous fastest lap is stored
+    currentLap = len(holdLaps) #Defaults to 0. If continuing after a pause, becomes lap after last lap in holdLaps
     currentSector = 3
     validLap = False
-    if len(holdLaps) > 0:
+    if len(holdLaps) > 0: #Add laps from paused session if there are any available
         laps = holdLaps
     else:
         laps = []
@@ -662,54 +676,58 @@ def drive(track, setup, holdLaps, currentFastest):
     while driving == True:
 
         lapTimer.updateTimer()
-        currentSection = getTrackSection(racecar, track)
-        if currentSector == 3 and currentSection[0] == track.sectors[0]:
+        currentSection = getTrackSection(racecar, track) #Get the track section the car is in
+        print(racecar.position)
+        if currentSector == 3 and currentSection[0] == track.sectors[0]: #If crossing from sector 3 to 1 (Starting a new lap)
             currentSector = 1
             lapTime, lapTotal = lapTimer.resetTimer()
             lapToAdd = [currentLap, lapTime, validLap, lapTotal]
             laps.append(lapToAdd)
-            fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
+            fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString) #Compare the new lap to the fastest lap of the session
             validLap = True
             currentLap += 1
-        elif currentSector == 1 and currentSection[0] == track.sectors[1]:
+        elif currentSector == 1 and currentSection[0] == track.sectors[1]: #If crossing from sector 1 to 2
             currentSector = 2
-        elif currentSector == 2 and currentSection[0] == track.sectors[2]:
+        elif currentSector == 2 and currentSection[0] == track.sectors[2]: #If crossing from sector 2 to 3
             currentSector = 3
-        validLap = getValidLap(currentSection, validLap)
+        validLap = getValidLap(currentSection, validLap) #Check if the lap is still valid
 
-        modifier = currentSection[2][0]
+        modifier = currentSection[2][0] #Get the terrain effect of the current section the car is in
 
         keys = pygame.key.get_pressed()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-        if keys[pygame.K_ESCAPE] == True:
+        if keys[pygame.K_ESCAPE] == True: #If the player pauses the game
             driving = False
-            holdLaps = laps
-            currentFastest = [fastestLap, fastestLapString]
-            pause(track, fastestLapString, setup, holdLaps, currentFastest)
-        if keys[pygame.K_w] or keys[pygame.K_UP] == True:
+            holdLaps = laps #Put laps in the session into holdLaps
+            currentFastest = [fastestLap, fastestLapString] #Update the current fastest lap of the session
+            pause(track, fastestLapString, setup, holdLaps, currentFastest) #Go to the pause menu
+        if keys[pygame.K_w] or keys[pygame.K_UP] == True: #Accelerator
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] or keys[pygame.K_DOWN] == True:
-            racecar.brake(modifier)
+            if racecar.speed > 0:
+                racecar.brake(modifier) #Brake if moving forward
+            else:
+                racecar.reverse(modifier) #Reverse if stopped or reversing already
         else:
             racecar.coast(modifier)
-        if keys[pygame.K_a] or keys[pygame.K_LEFT] == True:
+        if keys[pygame.K_a] or keys[pygame.K_LEFT] == True: #Turn left
             racecar.getTurnAngle(modifier)
             racecar.turn(-racecar.turnAngle)
-        elif keys[pygame.K_d] or keys[pygame.K_RIGHT] == True:
+        elif keys[pygame.K_d] or keys[pygame.K_RIGHT] == True: #Turn right
             racecar.getTurnAngle(modifier)
             racecar.turn(racecar.turnAngle)
-        if keys[pygame.K_r] == True:
+        if keys[pygame.K_r] == True: #Reset key
             currentSector = 3
             validLap = False
-            resetToStart(racecar, track)
+            resetToStart(racecar, track) #Put the car back to the start of the track
 
         racecar.update()
         pygame.display.flip()
-        screen.blit(track.image, (-racecar.rect.center[0], -racecar.rect.center[1]))
-        if validLap == True:
+        screen.blit(track.image, (-racecar.rect.center[0], -racecar.rect.center[1])) #Move the background so it looks like the car is moving
+        if validLap == True: #Change the colour of the timer based on if the lap is valid or not
             pygame.draw.rect(screen, black, lapDisplay)
         else:
             pygame.draw.rect(screen, red, lapDisplay)
@@ -720,10 +738,11 @@ def drive(track, setup, holdLaps, currentFastest):
         clock.tick(60)
 
 def pause(track, fastestLapString, setup, holdLaps, currentFastest):
-    click = False
     paused = True
 
     while paused:
+
+        click = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -751,7 +770,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
             if click == True:
                 paused = False
                 holdLaps = []
-                setupMenu(track)
+                setupMenu(track, setup.setupAsList) #Return to the setup menu
         elif leaderboardButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, leaderboardButton)
             pygame.draw.rect(screen, yellow, setupButton)
@@ -760,7 +779,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
             if click == True:
                 paused = False
                 holdLaps = []
-                saveToLeaderboard(track, fastestLapString, setup)
+                saveToLeaderboard(track, fastestLapString, setup) #Save the session
         elif resumeButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, resumeButton)
             pygame.draw.rect(screen, yellow, setupButton)
@@ -768,7 +787,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
             pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
                 paused = False
-                drive(track, setup, holdLaps, currentFastest)
+                drive(track, setup, holdLaps, currentFastest) #Go back on track with the laps that were set before pausing
         elif trackButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, trackButton)
             pygame.draw.rect(screen, yellow, setupButton)
@@ -777,7 +796,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
             if click == True:
                 paused = False
                 holdLaps = []
-                trackMenu()
+                trackMenu() #Return to the track menu
         else:
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellow, leaderboardButton)
@@ -796,24 +815,25 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
         pygame.display.flip()
         clock.tick(60)
 
-def getTotalLap(lap):
+def getTotalLap(lap): #Turn the lap string into a number
     lap = "".join(lap.split(":"))
     lap = "".join(lap.split("."))
     return int(lap)
 
 def saveToLeaderboard(track, fastestLapString, setup):
     saving = True
-    click = False
     notSaving = False
     userName = ""
     leaderboard = open(track.leaderboard, "r+")
 
-    if fastestLapString == "":
+    if fastestLapString == "": #If no time was set
         notSaving = True
 
     while notSaving:
         screen.fill(blue)
         drawText("No valid laps were set in that session", font, black, screen, 200, 250)
+
+        click = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -832,7 +852,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
             pygame.draw.rect(screen, yellowDark, endButton)
             if click == True:
                 notSaving = False
-                displayLeaderboard(track, None)
+                displayLeaderboard(track, None) #Go to the leaderboard with no new laps set
         else:
             pygame.draw.rect(screen, yellow, endButton)
 
@@ -844,6 +864,8 @@ def saveToLeaderboard(track, fastestLapString, setup):
         screen.fill(blue)
         drawText("Save session to leaderboard", font, black, screen, 20, 20)
         drawText("Enter a user name", font, black, screen, screenWidth/2-100, 100)
+
+        click = False
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -871,41 +893,43 @@ def saveToLeaderboard(track, fastestLapString, setup):
         if submitButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, submitButton)
             if click == True:
-                leaderLaps = leaderboard.readlines()
-                leaderLaps = [lap.rstrip("\n") for lap in leaderLaps]
-                leaderLaps = [lap[5:] for lap in leaderLaps]
+                leaderLaps = leaderboard.readlines() #Get all the laps
+                leaderLaps = [lap.rstrip("\n") for lap in leaderLaps] #Remove \ns from each line
+                leaderLaps = [lap[5:] for lap in leaderLaps] #Start each line from the start of the lap time
                 leaderboard.seek(0)
-                leaderboard.truncate()
+                leaderboard.truncate() #Empty the leaderboard
                 positionFound = False
                 position = 0
-                totalLap = getTotalLap(fastestLapString)
-                if len(leaderLaps) < 1:
+                totalLap = getTotalLap(fastestLapString) #The integer value of the lap set in the session
+                if len(leaderLaps) < 1: #If there are no previous times to compare to
                     positionFound = True
                 else:
                     while positionFound == False and position < len(leaderLaps):
-                        currentLap = leaderLaps[position].split(" | ")
-                        currentLap = getTotalLap(currentLap[0])
-                        if totalLap < currentLap and positionFound == False:
+                        currentLap = leaderLaps[position].split(" | ") #The lap at that point in the leaderboard
+                        currentLap = getTotalLap(currentLap[0]) #Find the integer value of the lap time
+                        if totalLap < currentLap and positionFound == False: #If the lap that has just been set is greater than the current lap on the leaderboard
                             positionFound = True
                         else:
                             position += 1
+                #Insert the new lap at its position in the leaderboard
                 leaderLaps.insert(position, str(fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias)))
                 leaderBoardPos = 1
-                while len(leaderLaps) > 0:
-                    if leaderBoardPos < 10:
+                while len(leaderLaps) > 0: #While there are laps to add to the leaderboard
+                    if leaderBoardPos < 10: #For single digit numbers
                         print(leaderLaps[0])
-                        leaderboard.write(str(leaderBoardPos) + "  | " + leaderLaps[0] + "\n")
+                        leaderboard.write(str(leaderBoardPos) + "  | " + leaderLaps[0] + "\n") #Put the lap into the leaderboard
                     else:
                         leaderboard.write(str(leaderBoardPos) + " | " + leaderLaps[0] + "\n")
                     leaderLaps.remove(leaderLaps[0])
                     leaderBoardPos += 1
                 leaderboard.close()
+                #Create a sting for the fastest lap in the session to show when viewing the leaderboard
                 if position < 10:
                     sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
                 else:
-                    sessionFastest = str(str([position+1]) + " | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
+                    sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
                 leaderboard = open(track.leaderboard, "r+")
-                displayLeaderboard(track, leaderboard, sessionFastest)
+                displayLeaderboard(track, leaderboard, sessionFastest) #Show the leaderboard with the lap the user set
                 saving = False
         else:
             pygame.draw.rect(screen, yellow, submitButton)
@@ -916,11 +940,8 @@ def saveToLeaderboard(track, fastestLapString, setup):
         clock.tick(60)
 
 def displayLeaderboard(track, leaderboard, sessionFastest):
-    #DISPLAY THE TOP 10 LAPS AS BUTTONS THAT USERS CAN CLICK TO LOAD THE SETUP USED TO SET THE LAP
-    #DISPLAY TOP 9 PLUS FASTEST LAP FROM LAST SESSION IF USER JUST SAVED A SESSION
     onLeaderboard = True
-    click = False
-    if sessionFastest == None:
+    if sessionFastest == None: #If there is a newly saved lap to be displayed
         sessionLapPresent = False
     else:
         sessionLapPresent = True
@@ -930,18 +951,18 @@ def displayLeaderboard(track, leaderboard, sessionFastest):
     leaderLaps = [lap.rstrip("\n") for lap in leaderLaps]
     leaderButtons = []
     if sessionLapPresent == True:
-        if int(sessionFastest[:1]) > 9:
+        if int(sessionFastest[:1]) > 9: #If the new lap is worse than the 9th best, add the top 9 then that lap
             leaderLaps = leaderLaps[:9]
             leaderLaps.append(sessionFastest)
     else:
-        leaderLaps = leaderLaps[:10]
+        leaderLaps = leaderLaps[:10] #Otherwise add the top 10 laps
 
     if len(leaderLaps) > 0:
         for lap in leaderLaps:
             currentLap = lap.split(" | ")
             leaderPos = int(currentLap[0])
             leaderButton = pygame.Rect(screenWidth/2-300, leaderPos*40, 600, 30)
-            if sessionLapPresent and sessionFastest == lap:
+            if sessionLapPresent and sessionFastest == lap: #If the new lap is present and is the same as the lap in the leaderboard
                 leaderButtons.append([leaderButton, lap, True])
             else:
                 leaderButtons.append([leaderButton, lap, False])
@@ -958,6 +979,8 @@ def displayLeaderboard(track, leaderboard, sessionFastest):
         screen.fill(blue)
         drawText("Leaderboard", font, black, screen, 20, 20)
 
+        click = False
+
         mx, my = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
@@ -969,10 +992,24 @@ def displayLeaderboard(track, leaderboard, sessionFastest):
                     click = True
 
         for button in leaderButtons:
-            if button[2] == True:
-                pygame.draw.rect(screen, green, button[0])
-            else:
-                pygame.draw.rect(screen, yellow, button[0])
+            if button[2] == True: #Display the newly saved lap with a green background
+                if button[0].collidepoint((mx, my)):
+                    pygame.draw.rect(screen, greenDark, button[0])
+                    if click == True:
+                        copySetup = button[1][-6:]
+                        copySetup = [int(setting) for setting in copySetup]
+                        setupMenu(track, copySetup)
+                else:
+                    pygame.draw.rect(screen, green, button[0])
+            else: #Display the rest with a yellow background
+                if button[0].collidepoint((mx, my)):
+                    pygame.draw.rect(screen, yellowDark, button[0])
+                    if click == True:
+                        copySetup = button[1][-6:]
+                        copySetup = [int(setting) for setting in copySetup]
+                        setupMenu(track, copySetup)
+                else:
+                    pygame.draw.rect(screen, yellow, button[0])
             buttonText = font.render(button[1], True, (0, 0, 0))
             buttonTextBox = buttonText.get_rect()
             screen.blit(buttonText, ((screenWidth/2-buttonTextBox.width/2), (button[0].y+5)))
@@ -982,13 +1019,13 @@ def displayLeaderboard(track, leaderboard, sessionFastest):
             pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
                 onLeaderboard = False
-                setupMenu(track)
+                setupMenu(track, defaultSetup)  #Return to the setup menu
         elif trackButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellowDark, trackButton)
             if click == True:
                 onLeaderboard = False
-                trackMenu()
+                trackMenu() #Return to the track menu
         else:
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellow, trackButton)
