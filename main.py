@@ -162,8 +162,6 @@ greenDark = (53, 189, 28)
 
 racecarImage = pygame.image.load(os.path.join('images', 'racecar.png')).convert_alpha()
 
-holdLaps = []
-
 defaultSetup = [3, 3, 3, 3, 3, 3]
 
 def drawText(text, font, color, surface, x, y): #Function to draw text
@@ -251,7 +249,7 @@ def trackMenu():
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track1terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
-                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 700, 500, tracks.track1, tracks.track1Sectors)
+                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 1000, tracks.track1, tracks.track1Sectors)
                 inTrackMenu = False
                 setupMenu(track, defaultSetup) #Go to the setup menu with the track that has been opened
         else:
@@ -264,10 +262,10 @@ def trackMenu():
                 trackName = "track2"
                 trackLeaderboard = "track2leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track2.png')).convert_alpha()
-                trackImage = pygame.transform.scale(trackImage, (3656, 2704))
+                trackImage = pygame.transform.scale(trackImage, (4570, 3380))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
-                trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
-                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 2000, 1500, tracks.track2, tracks.track2Sectors)
+                trackTerrain = pygame.transform.scale(trackTerrain, (4570, 3380))
+                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 200, tracks.track2, tracks.track2Sectors)
                 inTrackMenu = False
                 setupMenu(track, defaultSetup)
         else:
@@ -423,7 +421,7 @@ def setupMenu(track, currentSetup):
             if click == True:
                 currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup) #Create a setup from inputs
                 currentFastest = [math.inf, ""] #Reset currentFastest
-                drive(track, currentSetup, holdLaps, currentFastest) #Drive on track
+                drive(track, currentSetup, None, currentFastest, None) #Drive on track
                 inSetupMenu = False
         elif leaderButtonRect.collidepoint((mx, my)) and holding == False:
             screen.blit(driveButton, (600, 259))
@@ -651,7 +649,12 @@ def resetToStart(racecar, track): #Stop the car and return it to the start
     racecar.image = racecar.rotImg[0]
     racecar.position = track.spawnPoint
 
-def drive(track, setup, holdLaps, currentFastest):
+def getTheoBest(sectors):
+    totalTheo = str(sum(sectors))
+    theoBest = str(totalTheo[:-6]+":"+totalTheo[-5:-4]+"."+totalTheo[-3:])
+    return theoBest
+
+def drive(track, setup, holdLaps, currentFastest, holdSectors):
 
     #Creating the car
     racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup.frontWing, setup.rearWing, setup.camber, setup.toe, setup.gear, setup.brakeBias)
@@ -659,15 +662,24 @@ def drive(track, setup, holdLaps, currentFastest):
     racecarGroup.add(racecar)
 
     lapTimer = LapTimer()
+    sectorTimer = LapTimer()
     fastestLap = currentFastest[0] #Defaults to infinity. If continuing after a pause, previous fastest lap is stored
     fastestLapString = currentFastest[1] #Defaults to "". If continuing after a pause, string of the previous fastest lap is stored
-    currentLap = len(holdLaps) #Defaults to 0. If continuing after a pause, becomes lap after last lap in holdLaps
     currentSector = 3
     validLap = False
-    if len(holdLaps) > 0: #Add laps from paused session if there are any available
+
+    if holdLaps != None: #Add laps from paused session if there are any available
         laps = holdLaps
+        currentLap = len(holdLaps)
     else:
         laps = []
+        currentLap = 0
+    if holdSectors != None: #Gets the fastest sectors if there are any
+        fastestSectors = holdSectors
+    else:
+        fastestSectors = [math.inf, math.inf, math.inf]
+
+    sectorTimes = [0, 0, 0]
 
     lapDisplay = pygame.Rect(screenWidth/2-50, 20, 100, 50)
 
@@ -676,11 +688,16 @@ def drive(track, setup, holdLaps, currentFastest):
     while driving == True:
 
         lapTimer.updateTimer()
+        sectorTimer.updateTimer()
         currentSection = getTrackSection(racecar, track) #Get the track section the car is in
-        print(racecar.position)
         if currentSector == 3 and currentSection[0] == track.sectors[0]: #If crossing from sector 3 to 1 (Starting a new lap)
             currentSector = 1
             lapTime, lapTotal = lapTimer.resetTimer()
+            sectorTimes[2] = sectorTimer.resetTimer()
+            if validLap == True:
+                for sectorNum in range(len(sectorTimes)):
+                    if sectorTimes[sectorNum][1] < fastestSectors[sectorNum]:
+                        fastestSectors[sectorNum] = sectorTimes[sectorNum][1]
             lapToAdd = [currentLap, lapTime, validLap, lapTotal]
             laps.append(lapToAdd)
             fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString) #Compare the new lap to the fastest lap of the session
@@ -688,8 +705,10 @@ def drive(track, setup, holdLaps, currentFastest):
             currentLap += 1
         elif currentSector == 1 and currentSection[0] == track.sectors[1]: #If crossing from sector 1 to 2
             currentSector = 2
+            sectorTimes[0] = sectorTimer.resetTimer()
         elif currentSector == 2 and currentSection[0] == track.sectors[2]: #If crossing from sector 2 to 3
             currentSector = 3
+            sectorTimes[1] = sectorTimer.resetTimer()
         validLap = getValidLap(currentSection, validLap) #Check if the lap is still valid
 
         modifier = currentSection[2][0] #Get the terrain effect of the current section the car is in
@@ -701,9 +720,9 @@ def drive(track, setup, holdLaps, currentFastest):
                 sys.exit()
         if keys[pygame.K_ESCAPE] == True: #If the player pauses the game
             driving = False
-            holdLaps = laps #Put laps in the session into holdLaps
             currentFastest = [fastestLap, fastestLapString] #Update the current fastest lap of the session
-            pause(track, fastestLapString, setup, holdLaps, currentFastest) #Go to the pause menu
+            theoreticalBest = getTheoBest(fastestSectors) #Get the sum of best sectors
+            pause(track, fastestLapString, setup, laps, currentFastest, theoreticalBest, fastestSectors) #Go to the pause menu
         if keys[pygame.K_w] or keys[pygame.K_UP] == True: #Accelerator
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] or keys[pygame.K_DOWN] == True:
@@ -737,7 +756,7 @@ def drive(track, setup, holdLaps, currentFastest):
 
         clock.tick(60)
 
-def pause(track, fastestLapString, setup, holdLaps, currentFastest):
+def pause(track, fastestLapString, setup, holdLaps, currentFastest, theoreticalBest, fastestSectors):
     paused = True
 
     while paused:
@@ -754,6 +773,10 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
 
         screen.fill(blue)
         drawText("Pause", font, black, screen, 20, 20)
+        if theoreticalBest == ":.inf":
+            drawText(str("Theoretical Best Lap: No Laps Set"), font, black, screen, screenWidth-400, 20)
+        else:
+            drawText(str("Theoretical Best Lap: "+theoreticalBest), font, black, screen, screenWidth-400, 20)
 
         mx, my = pygame.mouse.get_pos()
 
@@ -787,7 +810,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest):
             pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
                 paused = False
-                drive(track, setup, holdLaps, currentFastest) #Go back on track with the laps that were set before pausing
+                drive(track, setup, holdLaps, currentFastest, fastestSectors) #Go back on track with the laps that were set before pausing
         elif trackButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, trackButton)
             pygame.draw.rect(screen, yellow, setupButton)
