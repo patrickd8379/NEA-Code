@@ -97,13 +97,13 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.deceleration = (0.3-(self.brakeBias*0.04)) #Deceleration affected by brake bias
     def turn(self, angle_degrees): #Change the way the car is pointing
         if abs(self.speed) > 0:
-            self.heading += math.radians(angle_degrees)
-            imageIndex = int(self.heading/self.minAngle) % len(self.rotImg)
+            self.heading += math.radians(angle_degrees) #Change the direction the car is facing
+            imageIndex = int(self.heading/self.minAngle) % len(self.rotImg) #Get the rotated image corresponding to the heading
             if (self.image != self.rotImg[imageIndex]):
                 x,y = self.rect.center
-                self.image = self.rotImg[imageIndex]
-                self.rect  = self.image.get_rect()
-                self.rect.center = (x,y)
+                self.image = self.rotImg[imageIndex] #Change the image to the one facing the correct way
+                self.rect  = self.image.get_rect() #Reset the rect of the car
+                self.rect.center = (x,y) #Position the car is the place it was before
     def accelerate(self, modifier): #Increase the speed of the car
         if self.speed < self.topSpeed*modifier: #Check if the car can go any faster on this terrain
             self.speed += (self.acceleration*modifier)
@@ -124,7 +124,7 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         if self.speed == 0.1:
             self.speed = 0
     def update(self): #Move the car based on its speed and heading
-        self.velocity.from_polar((self.speed, math.degrees(self.heading)))
+        self.velocity.from_polar((self.speed, math.degrees(self.heading))) #Get the change in position based on the speed and direction
         self.position += self.velocity
         self.fr += self.velocity
         self.fl += self.velocity
@@ -132,13 +132,13 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.rl += self.velocity
         self.rect.center = (round(self.position[0]), round(self.position[1]))
     def getTurnAngle(self, modifier): #How quickly the car turns
-        if abs(self.speed) <= self.topSpeed/2:
+        if abs(self.speed) <= self.topSpeed/2: #If below or at half of top speed
             self.turnAngle = (2+(self.toe*0.1)+(self.camber*0.1)+(self.frontWing*0.1))*modifier
-        else:
+        else: #If above half of top speed
             self.turnAngle = (2+(self.rearWing*0.2)+(self.frontWing*0.1))*modifier
         return self.turnAngle
     def reverse(self, modifier): #Move backwards
-        if abs(self.speed) < 3*modifier:
+        if abs(self.speed) < 3*modifier: #Maximum reverse speed is 3 times the modifier for the terrain
             self.speed -= (self.acceleration*modifier)
         else:
             self.speed = -3*modifier
@@ -196,7 +196,7 @@ def mainMenu():
         mx, my = pygame.mouse.get_pos()
 
         if startButton.collidepoint((mx, my)): #If the mouse is in contact with the button
-            pygame.draw.rect(screen, yellowDark, startButton)
+            pygame.draw.rect(screen, yellowDark, startButton) #Change the colour of the button
             if click == True:
                 trackMenu() #Go to the track menu
         else:
@@ -651,7 +651,10 @@ def resetToStart(racecar, track): #Stop the car and return it to the start
 
 def getTheoBest(sectors):
     totalTheo = str(sum(sectors))
-    theoBest = str(totalTheo[:-6]+":"+totalTheo[-5:-4]+"."+totalTheo[-3:])
+    print(totalTheo)
+    while len(totalTheo) < 6:
+        totalTheo = "0" + totalTheo
+    theoBest = str(totalTheo[:-5]+":"+totalTheo[-5:-3]+"."+totalTheo[-3:])
     return theoBest
 
 def drive(track, setup, holdLaps, currentFastest, holdSectors):
@@ -773,7 +776,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest, theoreticalB
 
         screen.fill(blue)
         drawText("Pause", font, black, screen, 20, 20)
-        if theoreticalBest == ":.inf":
+        if theoreticalBest == "0:00.inf": #If there is no theoretical best
             drawText(str("Theoretical Best Lap: No Laps Set"), font, black, screen, screenWidth-400, 20)
         else:
             drawText(str("Theoretical Best Lap: "+theoreticalBest), font, black, screen, screenWidth-400, 20)
