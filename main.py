@@ -15,16 +15,6 @@ class Track(): #Properties of the track
     def getTrackLeaderboard():
         return self.trackLeaderboard
 
-class Setup(): #The setup of the car
-    def __init__(self, frontWing, rearWing, camber, toe, gear, brake):
-        self.frontWing = frontWing #1-5
-        self.rearWing = rearWing #1-5
-        self.camber = camber #1-5
-        self.toe = toe #1-5
-        self.gear = gear #1-5
-        self.brakeBias = brake #1-5
-        self.setupAsList = [self.frontWing, self.rearWing, self.camber, self.toe, self.gear, self.brakeBias]
-
 class LapTimer(): #The timer which is displayed during gameplay
     def __init__(self):
         self.milliseconds = 0
@@ -64,14 +54,13 @@ class LapTimer(): #The timer which is displayed during gameplay
 
 class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
     def __init__(self, x, y, frontWing, rearWing, camber, toe, gear, brakeBias, rotations=360):
-        super().__init__()
         pygame.sprite.Sprite.__init__(self)
         self.rotImg   = []
-        self.minAngle = (360/rotations)
-        for i in range(rotations): #Create rotated versions of the car sprite
-            rotatedImage = pygame.transform.rotozoom(racecarImage, 360-90-(i*self.minAngle), 1)
-            self.rotImg.append(rotatedImage)
-        self.minAngle = math.radians(self.minAngle)
+        self.minAngle = (360/rotations) #The smallest angle and the amount of degrees the car image can be turned by at a time
+        for i in range(rotations):
+            rotatedImage = pygame.transform.rotozoom(racecarImage, 360-90-(i*self.minAngle), 1) #Creates a rotated image
+            self.rotImg.append(rotatedImage) #Adds the image to the list of rotated images
+        self.minAngle = math.radians(self.minAngle) #Converts minAngle to radians for car movement
         self.image = self.rotImg[0]
         self.rect = self.image.get_rect()
         self.heading = 0
@@ -419,7 +408,7 @@ def setupMenu(track, currentSetup):
             screen.blit(driveButtonSelected, (600, 259))
             screen.blit(leaderButton, (600, 52))
             if click == True:
-                currentSetup = Setup(fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup) #Create a setup from inputs
+                currentSetup = [fwSetup, rwSetup, camberSetup, toeSetup, gbSetup, bbSetup] #Create a setup from inputs
                 currentFastest = [math.inf, ""] #Reset currentFastest
                 drive(track, currentSetup, None, currentFastest, None) #Drive on track
                 inSetupMenu = False
@@ -660,7 +649,7 @@ def getTheoBest(sectors):
 def drive(track, setup, holdLaps, currentFastest, holdSectors):
 
     #Creating the car
-    racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup.frontWing, setup.rearWing, setup.camber, setup.toe, setup.gear, setup.brakeBias)
+    racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup[0], setup[1], setup[2], setup[3], setup[4], setup[5])
     racecarGroup = pygame.sprite.Group()
     racecarGroup.add(racecar)
 
@@ -878,7 +867,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
             pygame.draw.rect(screen, yellowDark, endButton)
             if click == True:
                 notSaving = False
-                displayLeaderboard(track, None) #Go to the leaderboard with no new laps set
+                displayLeaderboard(track, leaderboard, None) #Go to the leaderboard with no new laps set
         else:
             pygame.draw.rect(screen, yellow, endButton)
 
