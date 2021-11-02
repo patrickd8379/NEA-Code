@@ -53,7 +53,7 @@ class LapTimer(): #The timer which is displayed during gameplay
         return self.currentLapTime
 
 class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
-    def __init__(self, x, y, frontWing, rearWing, camber, toe, gear, brakeBias, rotations=360):
+    def __init__(self, x, y, frontWing, rearWing, gear, camber, toe, brakeBias, rotations=360):
         pygame.sprite.Sprite.__init__(self)
         self.rotImg   = []
         self.minAngle = (360/rotations) #The smallest angle and the amount of degrees the car image can be turned by at a time
@@ -325,9 +325,9 @@ def setupMenu(track, currentSetup):
 
     fwSetup = currentSetup[0]
     rwSetup = currentSetup[1]
-    gbSetup = currentSetup[4]
-    camberSetup = currentSetup[2]
-    toeSetup = currentSetup[3]
+    gbSetup = currentSetup[2]
+    camberSetup = currentSetup[3]
+    toeSetup = currentSetup[4]
     bbSetup = currentSetup[5]
 
     fwSelectorPositions = {1:28, 2:65, 3:102, 4:139, 5:177}
@@ -408,7 +408,7 @@ def setupMenu(track, currentSetup):
             screen.blit(driveButtonSelected, (600, 259))
             screen.blit(leaderButton, (600, 52))
             if click == True:
-                currentSetup = [fwSetup, rwSetup, camberSetup, toeSetup, gbSetup, bbSetup] #Create a setup from inputs
+                currentSetup = [fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup] #Create a setup from inputs
                 currentFastest = [math.inf, ""] #Reset currentFastest
                 drive(track, currentSetup, None, currentFastest, None) #Drive on track
                 inSetupMenu = False
@@ -417,7 +417,8 @@ def setupMenu(track, currentSetup):
             screen.blit(leaderButtonSelected, (600, 52))
             if click == True:
                 leaderboard = open(track.leaderboard, "r+") #Open the leaderboard
-                displayLeaderboard(track, leaderboard, None) #Go to the leaderboard
+                currentSetup = [fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup]
+                displayLeaderboard(track, leaderboard, None, currentSetup) #Go to the leaderboard
                 inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
@@ -869,7 +870,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
             pygame.draw.rect(screen, yellowDark, endButton)
             if click == True:
                 notSaving = False
-                displayLeaderboard(track, leaderboard, None) #Go to the leaderboard with no new laps set
+                displayLeaderboard(track, leaderboard, None, setup) #Go to the leaderboard with no new laps set
         else:
             pygame.draw.rect(screen, yellow, endButton)
 
@@ -929,7 +930,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
                         else:
                             position += 1
                 #Insert the new lap at its position in the leaderboard
-                leaderLaps.insert(position, str(fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[3]) + str(setup[4]) + str(setup[2]) + str(setup[5])))
+                leaderLaps.insert(position, str(fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5])))
                 leaderBoardPos = 1
                 while len(leaderLaps) > 0: #While there are laps to add to the leaderboard
                     if leaderBoardPos < 10: #For single digit numbers
@@ -942,11 +943,11 @@ def saveToLeaderboard(track, fastestLapString, setup):
                 leaderboard.close()
                 #Create a sting for the fastest lap in the session to show when viewing the leaderboard
                 if position < 10:
-                    sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[3]) + str(setup[4]) + str(setup[2]) + str(setup[5]))
+                    sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5]))
                 else:
-                    sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[3]) + str(setup[4]) + str(setup[2]) + str(setup[5]))
+                    sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5]))
                 leaderboard = open(track.leaderboard, "r+")
-                displayLeaderboard(track, leaderboard, sessionFastest) #Show the leaderboard with the lap the user set
+                displayLeaderboard(track, leaderboard, sessionFastest, setup) #Show the leaderboard with the lap the user set
                 saving = False
         else:
             pygame.draw.rect(screen, yellow, submitButton)
@@ -956,7 +957,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
         pygame.display.flip()
         clock.tick(60)
 
-def displayLeaderboard(track, leaderboard, sessionFastest):
+def displayLeaderboard(track, leaderboard, sessionFastest, currentSetup):
     onLeaderboard = True
     if sessionFastest == None: #If there is a newly saved lap to be displayed
         sessionLapPresent = False
@@ -1036,7 +1037,7 @@ def displayLeaderboard(track, leaderboard, sessionFastest):
             pygame.draw.rect(screen, yellow, trackButton)
             if click == True:
                 onLeaderboard = False
-                setupMenu(track, defaultSetup)  #Return to the setup menu
+                setupMenu(track, currentSetup)  #Return to the setup menu
         elif trackButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellow, setupButton)
             pygame.draw.rect(screen, yellowDark, trackButton)
