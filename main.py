@@ -84,15 +84,6 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.topSpeed = (8-(self.rearWing*0.1)-(self.frontWing*0.02)+(self.gear*0.1)-(self.camber*0.01)-(self.toe*0.01)) #Top speed affected by setup choices
         self.acceleration = (0.1-(self.gear*0.01)) #Acceleration affected by gearing choice
         self.deceleration = (0.3-(self.brakeBias*0.04)) #Deceleration affected by brake bias
-    def turn(self, angle_degrees): #Change the way the car is pointing
-        if abs(self.speed) > 0:
-            self.heading += math.radians(angle_degrees) #Change the direction the car is facing
-            imageIndex = int(self.heading/self.minAngle) % len(self.rotImg) #Get the rotated image corresponding to the heading
-            if (self.image != self.rotImg[imageIndex]):
-                x,y = self.rect.center
-                self.image = self.rotImg[imageIndex] #Change the image to the one facing the correct way
-                self.rect  = self.image.get_rect() #Reset the rect of the car
-                self.rect.center = (x,y) #Position the car is the place it was before
     def accelerate(self, modifier): #Increase the speed of the car
         if self.speed < self.topSpeed*modifier: #Check if the car can go any faster on this terrain
             self.speed += (self.acceleration*modifier)
@@ -112,6 +103,26 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
             self.speed -= 0.01
         if self.speed == 0.1:
             self.speed = 0
+    def getTurnAngle(self, modifier): #How quickly the car turns
+        if abs(self.speed) <= self.topSpeed/2: #If below or at half of top speed
+            self.turnAngle = (2+(self.toe*0.1)+(self.camber*0.1)+(self.frontWing*0.1)+(self.rearWing*0.05))*modifier
+        else: #If above half of top speed
+            self.turnAngle = (2+(self.rearWing*0.2)+(self.frontWing*0.1)+(self.toe*0.05)+(self.camber*0.05))*modifier
+        return self.turnAngle
+    def turn(self, angle_degrees): #Change the way the car is pointing
+        if abs(self.speed) > 0:
+            self.heading += math.radians(angle_degrees) #Change the direction the car is facing
+            imageIndex = int(self.heading/self.minAngle) % len(self.rotImg) #Get the rotated image corresponding to the heading
+            if (self.image != self.rotImg[imageIndex]):
+                x,y = self.rect.center
+                self.image = self.rotImg[imageIndex] #Change the image to the one facing the correct way
+                self.rect  = self.image.get_rect() #Reset the rect of the car
+                self.rect.center = (x,y) #Position the car is the place it was before
+    def reverse(self, modifier): #Move backwards
+        if abs(self.speed) < 3*modifier: #Maximum reverse speed is 3 times the modifier for the terrain
+            self.speed -= (self.acceleration*modifier)
+        else:
+            self.speed = -3*modifier
     def update(self): #Move the car based on its speed and heading
         self.velocity.from_polar((self.speed, math.degrees(self.heading))) #Get the change in position based on the speed and direction
         self.position += self.velocity
@@ -120,17 +131,6 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.rr += self.velocity
         self.rl += self.velocity
         self.rect.center = (round(self.position[0]), round(self.position[1]))
-    def getTurnAngle(self, modifier): #How quickly the car turns
-        if abs(self.speed) <= self.topSpeed/2: #If below or at half of top speed
-            self.turnAngle = (2+(self.toe*0.1)+(self.camber*0.1)+(self.frontWing*0.1))*modifier
-        else: #If above half of top speed
-            self.turnAngle = (2+(self.rearWing*0.2)+(self.frontWing*0.1))*modifier
-        return self.turnAngle
-    def reverse(self, modifier): #Move backwards
-        if abs(self.speed) < 3*modifier: #Maximum reverse speed is 3 times the modifier for the terrain
-            self.speed -= (self.acceleration*modifier)
-        else:
-            self.speed = -3*modifier
 
 screenWidth = 750
 screenHeight = 500
@@ -325,9 +325,9 @@ def setupMenu(track, currentSetup):
 
     fwSetup = currentSetup[0]
     rwSetup = currentSetup[1]
-    gbSetup = currentSetup[2]
-    camberSetup = currentSetup[3]
-    toeSetup = currentSetup[4]
+    gbSetup = currentSetup[4]
+    camberSetup = currentSetup[2]
+    toeSetup = currentSetup[3]
     bbSetup = currentSetup[5]
 
     fwSelectorPositions = {1:28, 2:65, 3:102, 4:139, 5:177}
@@ -597,21 +597,23 @@ def getTrackSection(racecar, track): #Find the section of the track the car is o
         if section[3] == False: #If one corner of the car is in a section out of track limits, it is recorded as a wheel off
             wheelsOff += 1
     if wheelsOff > 2: #If more than 2 wheels are off the track, the car is considered off the track and effects of the off-track sections are applied
-        for section in sectionsIn: #Applies the effects of either gravel, track, or grass
+        for section in sectionsIn: #Applies the effects of either gravel, grass or track
             if section[2][1] == "Gravel":
                 return section
-            elif section[2][1] == "Track":
+            elif section[2][1] == "Grass":
                 return section
             else:
-                return section #The section is grass terrain
+                return section #The section has track terrain
     else: #The car is in track limits
         for section in sectionsIn:
             if section[2][1] != "Track": #Sections that aren't track are ignored
                 sectionsIn.remove(section)
-        if sectionsIn[0][0] > sectionsIn[1][0]: #Returns the later section on the track
-            return sectionsIn[0]
-        else:
-            return sectionsIn[1]
+        trackSectionsIn = []
+        [trackSectionsIn.append(section) for section in sectionsIn if section not in trackSectionsIn]
+        if len(trackSectionsIn) > 1:
+            if trackSectionsIn[1][0] > trackSectionsIn[0][0]:
+                return trackSectionsIn[1]
+        return trackSectionsIn[0]
 
 def getFastestLap(lapToAdd, fastestLap, fastestLapString): #Find the fastesst lap
     print(lapToAdd, fastestLap)
@@ -785,7 +787,7 @@ def pause(track, fastestLapString, setup, holdLaps, currentFastest, theoreticalB
             if click == True:
                 paused = False
                 holdLaps = []
-                setupMenu(track, setup.setupAsList) #Return to the setup menu
+                setupMenu(track, setup) #Return to the setup menu
         elif leaderboardButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, leaderboardButton)
             pygame.draw.rect(screen, yellow, setupButton)
@@ -927,7 +929,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
                         else:
                             position += 1
                 #Insert the new lap at its position in the leaderboard
-                leaderLaps.insert(position, str(fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias)))
+                leaderLaps.insert(position, str(fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[3]) + str(setup[4]) + str(setup[2]) + str(setup[5])))
                 leaderBoardPos = 1
                 while len(leaderLaps) > 0: #While there are laps to add to the leaderboard
                     if leaderBoardPos < 10: #For single digit numbers
@@ -940,9 +942,9 @@ def saveToLeaderboard(track, fastestLapString, setup):
                 leaderboard.close()
                 #Create a sting for the fastest lap in the session to show when viewing the leaderboard
                 if position < 10:
-                    sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
+                    sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[3]) + str(setup[4]) + str(setup[2]) + str(setup[5]))
                 else:
-                    sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup.frontWing) + str(setup.rearWing) + str(setup.camber) + str(setup.toe) + str(setup.gear) + str(setup.brakeBias))
+                    sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[3]) + str(setup[4]) + str(setup[2]) + str(setup[5]))
                 leaderboard = open(track.leaderboard, "r+")
                 displayLeaderboard(track, leaderboard, sessionFastest) #Show the leaderboard with the lap the user set
                 saving = False
