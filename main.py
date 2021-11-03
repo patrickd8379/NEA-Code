@@ -322,6 +322,7 @@ def setupMenu(track, currentSetup):
     camberPickUp = False
     toePickUp = False
     bbPickUp = False
+    holding = False
 
     fwSetup = currentSetup[0]
     rwSetup = currentSetup[1]
@@ -373,9 +374,9 @@ def setupMenu(track, currentSetup):
                     camberPickUp = False
                     toePickUp = False
                     bbPickUp = False
+                    holding = False
         mx, my = pygame.mouse.get_pos()
 
-        holding = False
         if fwPickUp == True or rwPickUp == True or gbPickUp == True or camberPickUp == True or toePickUp == True or bbPickUp == True:
             holding = True
 
@@ -716,8 +717,7 @@ def drive(track, setup, holdLaps, currentFastest, holdSectors):
         if keys[pygame.K_ESCAPE] == True: #If the player pauses the game
             driving = False
             currentFastest = [fastestLap, fastestLapString] #Update the current fastest lap of the session
-            theoreticalBest = getTheoBest(fastestSectors) #Get the sum of best sectors
-            pause(track, fastestLapString, setup, laps, currentFastest, theoreticalBest, fastestSectors) #Go to the pause menu
+            pause(track, fastestLapString, setup, laps, currentFastest, fastestSectors) #Go to the pause menu
         if keys[pygame.K_w] or keys[pygame.K_UP] == True: #Accelerator
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] or keys[pygame.K_DOWN] == True:
@@ -751,8 +751,10 @@ def drive(track, setup, holdLaps, currentFastest, holdSectors):
 
         clock.tick(60)
 
-def pause(track, fastestLapString, setup, holdLaps, currentFastest, theoreticalBest, fastestSectors):
+def pause(track, fastestLapString, setup, holdLaps, currentFastest, fastestSectors):
     paused = True
+
+    theoreticalBest = getTheoBest(fastestSectors) #Get the sum of best sectors
 
     while paused:
 
@@ -911,6 +913,8 @@ def saveToLeaderboard(track, fastestLapString, setup):
         if submitButton.collidepoint((mx, my)):
             pygame.draw.rect(screen, yellowDark, submitButton)
             if click == True:
+                if len(userName) < 1:
+                    userName = "Unnamed"
                 leaderLaps = leaderboard.readlines() #Get all the laps
                 leaderLaps = [lap.rstrip("\n") for lap in leaderLaps] #Remove \ns from each line
                 leaderLaps = [lap[5:] for lap in leaderLaps] #Start each line from the start of the lap time
@@ -925,7 +929,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
                     while positionFound == False and position < len(leaderLaps):
                         currentLap = leaderLaps[position].split(" | ") #The lap at that point in the leaderboard
                         currentLap = getTotalLap(currentLap[0]) #Find the integer value of the lap time
-                        if totalLap < currentLap and positionFound == False: #If the lap that has just been set is greater than the current lap on the leaderboard
+                        if totalLap < currentLap and positionFound == False: #If the lap that has just been set is faster than the current lap on the leaderboard
                             positionFound = True
                         else:
                             position += 1
@@ -942,7 +946,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
                     leaderBoardPos += 1
                 leaderboard.close()
                 #Create a sting for the fastest lap in the session to show when viewing the leaderboard
-                if position < 10:
+                if position < 9:
                     sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5]))
                 else:
                     sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5]))
@@ -969,9 +973,11 @@ def displayLeaderboard(track, leaderboard, sessionFastest, currentSetup):
     leaderLaps = [lap.rstrip("\n") for lap in leaderLaps]
     leaderButtons = []
     if sessionLapPresent == True:
-        if int(sessionFastest[:1]) > 9: #If the new lap is worse than the 9th best, add the top 9 then that lap
+        if int(sessionFastest[:2]) > 9: #If the new lap is worse than the 9th best, add the top 9 then that lap
             leaderLaps = leaderLaps[:9]
             leaderLaps.append(sessionFastest)
+        else:
+            leaderLaps = leaderLaps[:10]
     else:
         leaderLaps = leaderLaps[:10] #Otherwise add the top 10 laps
 
@@ -979,7 +985,10 @@ def displayLeaderboard(track, leaderboard, sessionFastest, currentSetup):
         for lap in leaderLaps:
             currentLap = lap.split(" | ")
             leaderPos = int(currentLap[0])
-            leaderButton = pygame.Rect(screenWidth/2-300, leaderPos*40, 600, 30)
+            if leaderPos < 10:
+                leaderButton = pygame.Rect(screenWidth/2-300, leaderPos*40, 600, 30)
+            else:
+                leaderButton = pygame.Rect(screenWidth/2-300, 400, 600, 30)
             if sessionLapPresent and sessionFastest == lap: #If the new lap is present and is the same as the lap in the leaderboard
                 leaderButtons.append([leaderButton, lap, True])
             else:
