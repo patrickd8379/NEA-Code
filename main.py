@@ -81,9 +81,9 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.gear = gear
         self.brakeBias = brakeBias
         self.turnAngle = 0
-        self.topSpeed = (8-(self.rearWing*0.1)-(self.frontWing*0.02)+(self.gear*0.1)-(self.camber*0.01)-(self.toe*0.01)) #Top speed affected by setup choices
+        self.topSpeed = (8.5-(self.rearWing*0.2)-(self.frontWing*0.02)+(self.gear*0.2)-(self.camber*0.01)-(self.toe*0.01)) #Top speed affected by setup choices
         self.acceleration = (0.1-(self.gear*0.01)) #Acceleration affected by gearing choice
-        self.deceleration = (0.3-(self.brakeBias*0.04)) #Deceleration affected by brake bias
+        self.deceleration = (0.3-(self.brakeBias*0.05)) #Deceleration affected by brake bias
     def accelerate(self, modifier): #Increase the speed of the car
         if self.speed < self.topSpeed*modifier: #Check if the car can go any faster on this terrain
             self.speed += (self.acceleration*modifier)
@@ -148,6 +148,7 @@ buttonColour = (255, 255, 0)
 buttonColourDark = (230, 230, 0)
 green = (67, 240, 36)
 greenDark = (53, 189, 28)
+purple = (174, 87, 250)
 
 racecarImage = pygame.image.load(os.path.join('images', 'racecar.png')).convert_alpha()
 
@@ -677,7 +678,15 @@ def drive(track, setup, holdLaps, currentFastest, holdSectors):
 
     sectorTimes = [0, 0, 0]
 
-    lapDisplay = pygame.Rect(screenWidth/2-50, 20, 100, 50)
+    lapDisplay = pygame.Rect(140, 20, 100, 50)
+
+    if fastestLapString == "":
+        fLapDisplay = font.render("No Laps", True, white)
+    else:
+        fLapDisplay = font.render(fastestLapString, True, white)
+    fLapDisplayBox = pygame.Rect(20, 20, 100, 50)
+
+    speedometerBox = pygame.Rect(260, 20, 100, 50)
 
     driving = True
 
@@ -697,6 +706,10 @@ def drive(track, setup, holdLaps, currentFastest, holdSectors):
             lapToAdd = [currentLap, lapTime, validLap, lapTotal]
             laps.append(lapToAdd)
             fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString) #Compare the new lap to the fastest lap of the session
+            if fastestLapString == "":
+                fLapDisplay = font.render("No Laps", True, white)
+            else:
+                fLapDisplay = font.render(fastestLapString, True, white)
             validLap = True
             currentLap += 1
         elif currentSector == 1 and currentSection[0] == track.sectors[1]: #If crossing from sector 1 to 2
@@ -747,6 +760,16 @@ def drive(track, setup, holdLaps, currentFastest, holdSectors):
             pygame.draw.rect(screen, red, lapDisplay)
         timer = font.render(lapTimer.currentLapTime, True, white)
         screen.blit(timer, (lapDisplay.center[0]-40, lapDisplay.center[1]-10))
+
+        pygame.draw.rect(screen, purple, fLapDisplayBox)
+        screen.blit(fLapDisplay, (fLapDisplayBox.center[0]-40, fLapDisplayBox.center[1]-10))
+
+        speedometer = font.render(str(abs(int(racecar.speed*25)))+" mph", True, white)
+        pygame.draw.rect(screen, green, speedometerBox)
+
+        #turnAngleString = font.render(str(racecar.turnAngle), True, black)
+        #screen.blit(turnAngleString, (400, 20))
+        screen.blit(speedometer, (speedometerBox.center[0]-40, speedometerBox.center[1]-10))
         screen.blit(racecar.image, (screenWidth/2,screenHeight/2))
 
         clock.tick(60)
