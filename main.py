@@ -718,6 +718,8 @@ def drive(track, setup, holdLaps, currentFastest, holdSectors):
         elif currentSector == 2 and currentSection[0] == track.sectors[2]: #If crossing from sector 2 to 3
             currentSector = 3
             sectorTimes[1] = sectorTimer.resetTimer()
+        elif currentSector == 1 and currentSection[0] == track.sectors[2]: #If crossing from sector 1 to 3 (You are going backwards)
+            validLap = False
         validLap = getValidLap(currentSection, validLap) #Check if the lap is still valid
 
         modifier = currentSection[2][0] #Get the terrain effect of the current section the car is in
