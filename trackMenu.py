@@ -1,6 +1,7 @@
 import pygame, sys, math, os, tracks
 from main import *
-from drive import *
+
+currentSetup = DEFAULTSETUP
 
 track1Button = pygame.Rect(25, 100, 185, 219)
 track1Preview = pygame.image.load(os.path.join('images', 'track1preview.png')).convert_alpha()
@@ -42,9 +43,6 @@ while inTrackMenu:
             trackTerrain = pygame.image.load(os.path.join('images', 'track1terrain.png')).convert_alpha()
             trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
             track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 1000, tracks.track1, tracks.track1Sectors)
-            currentSetup = defaultSetup
-            holdLaps = []
-            holdSectors = None
             exec(open(SETUPMENU).read()) #Go to the setup menu with the track that has been opened
             inTrackMenu = False
     else:
@@ -61,9 +59,6 @@ while inTrackMenu:
             trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
             trackTerrain = pygame.transform.scale(trackTerrain, (4570, 3380))
             track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 200, tracks.track2, tracks.track2Sectors)
-            currentSetup = defaultSetup
-            holdLaps = []
-            holdSectors = None
             exec(open(SETUPMENU).read())
             inTrackMenu = False
     else:
@@ -80,9 +75,6 @@ while inTrackMenu:
             trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
             trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
             track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
-            currentSetup = defaultSetup
-            holdLaps = []
-            holdSectors = None
             exec(open(SETUPMENU).read())
             inTrackMenu = False
     else:

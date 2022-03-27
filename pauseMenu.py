@@ -1,6 +1,6 @@
 import pygame, sys, math, os, tracks
-from trackMenu import *
-from setupMenu import *
+from main import *
+from trackMenu import track
 from drive import *
 
 paused = True
@@ -40,8 +40,10 @@ while paused:
         pygame.draw.rect(screen, yellow, trackButton)
         if click == True:
             paused = False
+            currentFastest = [math.inf, ""] #Reset currentFastest
             holdLaps = None
             holdSectors = None
+            currentSetup = setup
             exec(open(SETUPMENU).read()) #Return to the setup menu
     elif leaderboardButton.collidepoint((mx, my)):
         pygame.draw.rect(screen, yellowDark, leaderboardButton)

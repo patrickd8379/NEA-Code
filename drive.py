@@ -1,9 +1,17 @@
 import pygame, sys, math, os, tracks
 from main import *
-from setupMenu import *
+from trackMenu import track
+from setupMenu import currentSetup
+try:
+    from pauseMenu import *
+except:
+    currentFastest = [math.inf, ""] #Reset currentFastest
+    holdLaps = None
+    holdSectors = None
 
 #Creating the car
 setup = currentSetup
+currentSetup = setup
 racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup[0], setup[1], setup[2], setup[3], setup[4], setup[5])
 racecarGroup = pygame.sprite.Group()
 racecarGroup.add(racecar)

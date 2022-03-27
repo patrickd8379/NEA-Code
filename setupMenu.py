@@ -1,7 +1,6 @@
 import pygame, sys, math, os, tracks
 from main import *
 from trackMenu import *
-from drive import *
 
 inSetupMenu = True
 
@@ -99,9 +98,6 @@ while inSetupMenu:
                 holding = False
     mx, my = pygame.mouse.get_pos()
 
-    if fwPickUp == True or rwPickUp == True or gbPickUp == True or camberPickUp == True or toePickUp == True or bbPickUp == True:
-        holding = True
-
     if fwSelector.collidepoint((mx, my)):
         pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND) #Show the cursor as a hand
         if click == True: #Pick up that selector
@@ -127,12 +123,17 @@ while inSetupMenu:
         if click == True:
             bbPickUp = True
 
+    if fwPickUp == True or rwPickUp == True or gbPickUp == True or camberPickUp == True or toePickUp == True or bbPickUp == True:
+        holding = True
+
     if driveButtonRect.collidepoint((mx, my)) and holding == False:
         screen.blit(driveButtonSelected, (600, 259))
         screen.blit(leaderButton, (600, 52))
         if click == True:
             currentSetup = [fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup] #Create a setup from inputs
             currentFastest = [math.inf, ""] #Reset currentFastest
+            holdLaps = None
+            holdSectors = None
             exec(open(DRIVE).read()) #Drive on track
             inSetupMenu = False
     elif leaderButtonRect.collidepoint((mx, my)) and holding == False:
@@ -141,7 +142,8 @@ while inSetupMenu:
         if click == True:
             leaderboard = open(track.leaderboard, "r+") #Open the leaderboard
             currentSetup = [fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup]
-            displayLeaderboard(track, leaderboard, None, currentSetup) #Go to the leaderboard
+            sessionFastest = None
+            exec(open(LEADERBOARDSCREEN).read()) #Go to the leaderboard
             inSetupMenu = False
     else:
         pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)
