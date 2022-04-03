@@ -59,6 +59,7 @@ def runPauseMenu(setup, track, holdLaps, holdSectors, fastestLap, fastestLapStri
             pygame.draw.rect(main.screen, main.yellow, trackButton)
             if click == True:
                 paused = False
+                currentFastest = [fastestLap, fastestLapString]
                 drive.playGame(setup, track, currentFastest, holdLaps, holdSectors) #Go back on track with the laps that were set before pausing
         elif trackButton.collidepoint((mx, my)):
             pygame.draw.rect(main.screen, main.yellowDark, trackButton)

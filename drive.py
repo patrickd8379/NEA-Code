@@ -223,6 +223,7 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
 
         racecar.update()
         pygame.display.flip()
+        main.screen.fill(main.black)
         main.screen.blit(track.image, (-racecar.rect.center[0], -racecar.rect.center[1])) #Move the background so it looks like the car is moving
         if validLap == True: #Change the colour of the timer based on if the lap is valid or not
             pygame.draw.rect(main.screen, main.black, lapDisplay)
@@ -255,39 +256,36 @@ def getTrackSection(racecar, track): #Find the section of the track the car is o
     colourAtRR = (track.terrain.get_at((int(racecar.rr[0]+390), int(racecar.rr[1]+265))))[:3]
     colourAtFL = (track.terrain.get_at((int(racecar.fl[0]+390), int(racecar.fl[1]+265))))[:3]
     colourAtFR = (track.terrain.get_at((int(racecar.fr[0]+390), int(racecar.fr[1]+265))))[:3]
-    frDone = False
-    flDone = False
-    rrDone = False
-    rlDone = False
     sectionsIn = [] #Sections that the car is in
     wheelsOff = 0 #The amount of corners of the car that are off the track
     for section in track.sections:
-        if flDone == False and colourAtFL == section[1]: #If that corner of the car has not been found in a section yet
+        if colourAtFL == section[1]: #If that corner of the car has not been found in a section yet
             sectionsIn.append(section)
-            flDone = True
-        if frDone == False and colourAtFR == section[1]:
+        if colourAtFR == section[1]:
             sectionsIn.append(section)
-            frDone = True
-        if rlDone == False and colourAtRL == section[1]:
+        if colourAtRL == section[1]:
             sectionsIn.append(section)
-            rlDone = True
-        if rrDone == False and colourAtRR == section[1]:
+        if colourAtRR == section[1]:
             sectionsIn.append(section)
-            rrDone = True
-
     for section in sectionsIn: #Decide which section will be used to effect the car performance
         if section[2][1] == "Wall": #Wall has highest priority and will be applied immediately if touched
             return section
         if section[3] == False: #If one corner of the car is in a section out of track limits, it is recorded as a wheel off
             wheelsOff += 1
     if wheelsOff > 2: #If more than 2 wheels are off the track, the car is considered off the track and effects of the off-track sections are applied
-        for section in sectionsIn: #Applies the effects of either gravel, grass or track
-            if section[2][1] == "Gravel":
-                return section
-            elif section[2][1] == "Grass":
-                return section
+        offTrackSections = []
+        [offTrackSections.append(section) for section in sectionsIn if section[3] == False]
+        if len(offTrackSections) > 1:
+            if offTrackSections[0] < offTrackSections[1]:
+                if len(offTrackSections) == 3 and offTrackSections[0] > offTrackSections[2]:
+                    return offTrackSections[2]
+                return offTrackSections[0]
             else:
-                return section #The section has track terrain
+                if len(offTrackSections) == 3 and offTrackSections[1] > offTrackSections[2]:
+                    return offTrackSections[2]
+                return offTrackSections[1]
+        else:
+            return offTrackSections[0]
     else: #The car is in track limits
         for section in sectionsIn:
             if section[2][1] != "Track": #Sections that aren't track are ignored

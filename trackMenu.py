@@ -72,10 +72,10 @@ def runTrackMenu():
                 trackName = "track2"
                 trackLeaderboard = "track2leaderboard.txt"
                 trackImage = pygame.image.load(os.path.join('images', 'track2.png')).convert_alpha()
-                trackImage = pygame.transform.scale(trackImage, (4570, 3380))
+                trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track2terrain.png')).convert_alpha()
-                trackTerrain = pygame.transform.scale(trackTerrain, (4570, 3380))
-                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 200, tracks.track2, tracks.track2Sectors)
+                trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
+                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 1000, 160, tracks.track2, tracks.track2Sectors)
                 inTrackMenu = False
                 setupMenu.runSetupMenu(track, currentSetup)
         else:
@@ -91,7 +91,7 @@ def runTrackMenu():
                 trackImage = pygame.transform.scale(trackImage, (3656, 2704))
                 trackTerrain = pygame.image.load(os.path.join('images', 'track3terrain.png')).convert_alpha()
                 trackTerrain = pygame.transform.scale(trackTerrain, (3656, 2704))
-                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 600, 170, tracks.track3, tracks.track3Sectors)
+                track = Track(trackName, trackLeaderboard, trackImage, trackTerrain, 200, 170, tracks.track3, tracks.track3Sectors)
                 inTrackMenu = False
                 setupMenu.runSetupMenu(track, currentSetup)
         else:
