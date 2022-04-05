@@ -98,7 +98,6 @@ def saveToLeaderboard(track, fastestLapString, setup):
                 leaderBoardPos = 1
                 while len(leaderLaps) > 0: #While there are laps to add to the leaderboard
                     if leaderBoardPos < 10: #For single digit numbers
-                        print(leaderLaps[0])
                         leaderboard.write(str(leaderBoardPos) + "  | " + leaderLaps[0] + "\n") #Put the lap into the leaderboard
                     else:
                         leaderboard.write(str(leaderBoardPos) + " | " + leaderLaps[0] + "\n")
@@ -110,7 +109,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
                     sessionFastest = str(str(position+1) + "  | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5]))
                 else:
                     sessionFastest = str(str(position+1) + " | " + fastestLapString + " | " + userName+ " | " + str(setup[0]) + str(setup[1]) + str(setup[2]) + str(setup[3]) + str(setup[4]) + str(setup[5]))
-                leaderboardScreen.runLeaderboard(track, sessionFastest) #Show the leaderboard with the lap the user set
+                leaderboardScreen.runLeaderboard(track, sessionFastest, setup) #Show the leaderboard with the lap the user set
                 saving = False
         else:
             pygame.draw.rect(main.screen, main.yellow, submitButton)

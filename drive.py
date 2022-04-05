@@ -10,9 +10,9 @@ class LapTimer(): #The timer which is displayed during gameplay
         self.currentLapTime = str(self.minutes)+":"+self.secondsAsString+"."+self.millisecondsAsString #The laptime that will be displayed in gameplay
         self.totalLap = str(self.minutes)+self.secondsAsString+self.millisecondsAsString #A numerical value for the laptime
     def updateTimer(self): #Increment the timer and update the totalLap
-        self.milliseconds += int((1/60)*1000)
+        self.milliseconds += int(1000/60)
         if self.milliseconds > 999:
-            self.milliseconds -= 999
+            self.milliseconds -= 1000
             self.seconds += 1
         if self.seconds > 59:
             self.seconds = 0
@@ -94,9 +94,9 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         else: #If above half of top speed
             self.turnAngle = (2+(self.rearWing*0.2)+(self.frontWing*0.1)+(self.toe*0.05)+(self.camber*0.05))*modifier
         return self.turnAngle
-    def turn(self, angle_degrees): #Change the way the car is pointing
+    def turn(self, angleDegrees): #Change the way the car is pointing
         if abs(self.speed) > 0:
-            self.heading += math.radians(angle_degrees) #Change the direction the car is facing
+            self.heading += math.radians(angleDegrees) #Change the direction the car is facing
             imageIndex = int(self.heading/self.minAngle) % len(self.rotImg) #Get the rotated image corresponding to the heading
             if (self.image != self.rotImg[imageIndex]):
                 x,y = self.rect.center
@@ -132,7 +132,7 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
 
     if holdLaps != None: #Add laps from paused session if there are any available
         laps = holdLaps
-        currentLap = len(holdLaps)
+        currentLap = holdLaps[-1][0]
     else:
         laps = []
         currentLap = 0
@@ -161,7 +161,7 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
         lapTimer.updateTimer()
         sectorTimer.updateTimer()
         currentSection = getTrackSection(racecar, track) #Get the track section the car is in
-        if currentSector == 3 and currentSection[0] == track.sectors[0]: #If crossing from sector 3 to 1 (Starting a new lap)
+        if currentSector == 3 and currentSection[0] == track.sectors[0]:
             currentSector = 1
             lapTime, lapTotal = lapTimer.resetTimer()
             sectorTimes[2] = sectorTimer.resetTimer()
@@ -169,23 +169,30 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
                 for sectorNum in range(len(sectorTimes)):
                     if sectorTimes[sectorNum][1] < fastestSectors[sectorNum]:
                         fastestSectors[sectorNum] = sectorTimes[sectorNum][1]
-            lapToAdd = [currentLap, lapTime, validLap, lapTotal]
-            laps.append(lapToAdd)
-            fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString) #Compare the new lap to the fastest lap of the session
-            if fastestLapString == "":
-                fLapDisplay = main.font.render("No Laps", True, main.white)
-            else:
-                fLapDisplay = main.font.render(fastestLapString, True, main.white)
+                lapToAdd = [currentLap, lapTime, validLap, lapTotal]
+                laps.append(lapToAdd)
+                fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
+                if fastestLapString == "":
+                    fLapDisplay = main.font.render("No Laps", True, main.white)
+                else:
+                    fLapDisplay = main.font.render(fastestLapString, True, main.white)
             validLap = True
             currentLap += 1
-        elif currentSector == 1 and currentSection[0] == track.sectors[1]: #If crossing from sector 1 to 2
+        elif currentSector == 1 and currentSection[0] == track.sectors[1]:
             currentSector = 2
             sectorTimes[0] = sectorTimer.resetTimer()
-        elif currentSector == 2 and currentSection[0] == track.sectors[2]: #If crossing from sector 2 to 3
+        elif currentSector == 2 and currentSection[0] == track.sectors[2]:
             currentSector = 3
             sectorTimes[1] = sectorTimer.resetTimer()
         elif currentSector == 1 and currentSection[0] == track.sectors[2]: #If crossing from sector 1 to 3 (You are going backwards)
             validLap = False
+            currentSector = 3
+        elif currentSector == 2 and currentSection[0] == track.sectors[0]:
+            validLap = False
+            currentSector = 1
+        elif currentSector == 3 and currentSection[0] == track.sectors[1]:
+            validLap = False
+            currentSector = 2
         validLap = getValidLap(currentSection, validLap) #Check if the lap is still valid
 
         modifier = currentSection[2][0] #Get the terrain effect of the current section the car is in
@@ -209,6 +216,8 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
             else:
                 racecar.reverse(modifier) #Reverse if stopped or reversing already
         else:
+            if racecar.speed > racecar.topSpeed * modifier: #Speed cannot exceed maximum for terrain type when coasting
+                racecar.speed = racecar.topSpeed * modifier
             racecar.coast(modifier)
         if keys[pygame.K_a] or keys[pygame.K_LEFT] == True: #Turn left
             racecar.getTurnAngle(modifier)
@@ -297,7 +306,7 @@ def getTrackSection(racecar, track): #Find the section of the track the car is o
                 return trackSectionsIn[1]
         return trackSectionsIn[0]
 
-def getFastestLap(lapToAdd, fastestLap, fastestLapString): #Find the fastesst lap
+def getFastestLap(lapToAdd, fastestLap, fastestLapString): #Find the fastest lap
     print(lapToAdd, fastestLap)
     if lapToAdd[2] == True:
         if lapToAdd[3] < fastestLap:
@@ -306,9 +315,7 @@ def getFastestLap(lapToAdd, fastestLap, fastestLapString): #Find the fastesst la
     return fastestLap, fastestLapString
 
 def getValidLap(section, validLap): #Check if the lap is valid
-    if validLap == False: #Stays false if its false
-        return False
-    elif section[3] == False: #If the current section is out of track limits, the lap is invalidated
+    if section[3] == False: #If the current section is out of track limits, the lap is invalidated
         validLap = False
     return validLap
 

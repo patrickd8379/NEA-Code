@@ -1,4 +1,4 @@
-import pygame, sys, math, os, tracks, trackMenu
+import pygame, sys, math, os, tracks, mainMenu
 pygame.init()
 clock = pygame.time.Clock()
 
@@ -33,42 +33,3 @@ def drawText(text, font, color, surface, x, y): #Function to draw text
     textRect = textObj.get_rect()
     textRect.topleft = (x, y)
     surface.blit(textObj, textRect)
-
-click = False
-
-def mainMenu():
-    while True: #While on main menu
-        click = False
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT: #If the user quits the game
-                pygame.quit() #End the program
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit() #End program if esc pressed
-                    sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    click = True #Left click on mouse is considered a click
-
-        screen.fill(blue)
-        drawText("Main Menu", font, black, screen, 20, 20)
-
-        startButton = pygame.Rect((screenWidth/2)-50, 350, 100, 50)
-
-        mx, my = pygame.mouse.get_pos()
-
-        if startButton.collidepoint((mx, my)): #If the mouse is in contact with the button
-            pygame.draw.rect(screen, yellowDark, startButton) #Change the colour of the button
-            if click == True:
-                trackMenu.runTrackMenu() #Go to the track menu
-        else:
-            pygame.draw.rect(screen, yellow, startButton)
-
-        drawText("Start", font, black, screen, (screenWidth/2)-25, 365)
-
-        pygame.display.update()
-        clock.tick(60)
-
-mainMenu()

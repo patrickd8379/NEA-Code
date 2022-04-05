@@ -142,7 +142,7 @@ def runSetupMenu(track, currentSetup):
                 leaderboard = open(track.leaderboard, "r+") #Open the leaderboard
                 currentSetup = [fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup]
                 sessionFastest = None
-                leaderboardScreen.runLeaderboard(track, None) #Go to the leaderboard
+                leaderboardScreen.runLeaderboard(track, None, currentSetup) #Go to the leaderboard
                 inSetupMenu = False
         else:
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_ARROW)

@@ -1,6 +1,6 @@
 import pygame, sys, math, os, main, setupMenu, trackMenu
 
-def runLeaderboard(track, sessionFastest):
+def runLeaderboard(track, sessionFastest, currentSetup):
     onLeaderboard = True
     if sessionFastest == None: #If there is a newly saved lap to be displayed
         sessionLapPresent = False
@@ -65,8 +65,7 @@ def runLeaderboard(track, sessionFastest):
                     if click == True:
                         copySetup = button[1][-6:]
                         copySetup = [int(setting) for setting in copySetup]
-                        currentSetup = copySetup
-                        setupMenu.runSetupMenu(track, currentSetup)
+                        setupMenu.runSetupMenu(track, copySetup)
                 else:
                     pygame.draw.rect(main.screen, main.green, button[0])
             else: #Display the rest with a yellow background
@@ -75,8 +74,7 @@ def runLeaderboard(track, sessionFastest):
                     if click == True:
                         copySetup = button[1][-6:]
                         copySetup = [int(setting) for setting in copySetup]
-                        currentSetup = copySetup
-                        setupMenu.runSetupMenu(track, currentSetup)
+                        setupMenu.runSetupMenu(track, copySetup)
                 else:
                     pygame.draw.rect(main.screen, main.yellow, button[0])
             buttonText = main.font.render(button[1], True, (0, 0, 0))

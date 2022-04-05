@@ -1,4 +1,4 @@
-import pygame, sys, math, os, main, tracks, setupMenu
+import pygame, sys, math, os, main, tracks, main, mainMenu, setupMenu
 
 class Track(): #Properties of the track
     def __init__(self, trackName, trackLeaderboard, trackImage, trackTerrain, x, y, trackSections, trackSectors):
@@ -12,7 +12,6 @@ class Track(): #Properties of the track
 
     def getTrackLeaderboard():
         return self.trackLeaderboard
-
 
 def runTrackMenu():
 
@@ -43,7 +42,7 @@ def runTrackMenu():
                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    mainMenu()
+                    mainMenu.runMainMenu()
                     inTrackMenu = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
