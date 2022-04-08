@@ -36,6 +36,7 @@ def runSetupMenu(track, currentSetup):
     bbSelector = bbSelectorImage.get_rect()
 
     click = False
+
     fwPickUp = False
     rwPickUp = False
     gbPickUp = False
@@ -101,29 +102,32 @@ def runSetupMenu(track, currentSetup):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND) #Show the cursor as a hand
             if click == True: #Pick up that selector
                 fwPickUp = True
+                holding = True
         elif rwSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
             if click == True:
                 rwPickUp = True
+                holding = True
         elif gbSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
             if click == True:
                 gbPickUp = True
+                holding = True
         elif camberSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
             if click == True:
                 camberPickUp = True
+                holding = True
         elif toeSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
             if click == True:
                 toePickUp = True
+                holding = True
         elif bbSelector.collidepoint((mx, my)):
             pygame.mouse.set_system_cursor(pygame.SYSTEM_CURSOR_HAND)
             if click == True:
                 bbPickUp = True
-
-        if fwPickUp == True or rwPickUp == True or gbPickUp == True or camberPickUp == True or toePickUp == True or bbPickUp == True:
-            holding = True
+                holding = True
 
         if driveButtonRect.collidepoint((mx, my)) and holding == False:
             main.screen.blit(driveButtonSelected, (600, 259))
@@ -131,9 +135,8 @@ def runSetupMenu(track, currentSetup):
             if click == True:
                 currentSetup = [fwSetup, rwSetup, gbSetup, camberSetup, toeSetup, bbSetup] #Create a setup from inputs
                 currentFastest = [math.inf, ""] #Reset currentFastest
-                holdLaps = None
-                holdSectors = None
-                drive.playGame(currentSetup, track, currentFastest, holdLaps, holdSectors) #Drive on track
+                fastestSectors = None
+                drive.playGame(currentSetup, track, currentFastest, fastestSectors) #Drive on track
                 inSetupMenu = False
         elif leaderButtonRect.collidepoint((mx, my)) and holding == False:
             main.screen.blit(driveButton, (600, 259))

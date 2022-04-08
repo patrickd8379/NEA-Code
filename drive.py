@@ -82,8 +82,8 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         elif self.speed-self.deceleration < 0 :
             self.speed = 0
     def coast(self, modifier): #Slowly decrease the speed of the car
-        if modifier == 0:
-            self.speed = 0
+        if self.speed > self.topSpeed * modifier:
+            self.speed = self.topSpeed * modifier
         if self.speed > 0.1:
             self.speed -= 0.01
         if self.speed == 0.1:
@@ -117,7 +117,7 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.rl += self.velocity
         self.rect.center = (round(self.position[0]), round(self.position[1]))
 
-def playGame(setup, track, currentFastest, holdLaps, holdSectors):
+def playGame(setup, track, currentFastest, fastestSectors):
     #Creating the car
     racecar = Racecar(track.spawnPoint[0], track.spawnPoint[1], setup[0], setup[1], setup[2], setup[3], setup[4], setup[5])
     racecarGroup = pygame.sprite.Group()
@@ -130,16 +130,7 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
     currentSector = 3
     validLap = False
 
-    if holdLaps != None: #Add laps from paused session if there are any available
-        laps = holdLaps
-        currentLap = holdLaps[-1][0]
-    else:
-        laps = []
-        currentLap = 0
-
-    if holdSectors != None: #Gets the fastest sectors if there are any
-        fastestSectors = holdSectors
-    else:
+    if fastestSectors == None:
         fastestSectors = [math.inf, math.inf, math.inf]
 
     sectorTimes = [0, 0, 0]
@@ -169,15 +160,9 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
                 for sectorNum in range(len(sectorTimes)):
                     if sectorTimes[sectorNum][1] < fastestSectors[sectorNum]:
                         fastestSectors[sectorNum] = sectorTimes[sectorNum][1]
-                lapToAdd = [currentLap, lapTime, validLap, lapTotal]
-                laps.append(lapToAdd)
-                fastestLap, fastestLapString = getFastestLap(lapToAdd, fastestLap, fastestLapString)
-                if fastestLapString == "":
-                    fLapDisplay = main.font.render("No Laps", True, main.white)
-                else:
-                    fLapDisplay = main.font.render(fastestLapString, True, main.white)
+                fastestLap, fastestLapString = getFastestLap(lapTime, lapTotal, fastestLap, fastestLapString)
+                fLapDisplay = main.font.render(fastestLapString, True, main.white)
             validLap = True
-            currentLap += 1
         elif currentSector == 1 and currentSection[0] == track.sectors[1]:
             currentSector = 2
             sectorTimes[0] = sectorTimer.resetTimer()
@@ -205,9 +190,7 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
         if keys[pygame.K_ESCAPE] == True: #If the player pauses the game
             driving = False
             currentFastest = [fastestLap, fastestLapString] #Update the current fastest lap of the session
-            holdLaps = laps
-            holdSectors = fastestSectors
-            pauseMenu.runPauseMenu(setup, track, holdLaps, holdSectors, fastestLap, fastestLapString, fastestSectors) #Go to the pause menu
+            pauseMenu.runPauseMenu(setup, track, fastestLap, fastestLapString, fastestSectors) #Go to the pause menu
         if keys[pygame.K_w] or keys[pygame.K_UP] == True: #Accelerator
             racecar.accelerate(modifier)
         elif keys[pygame.K_s] or keys[pygame.K_DOWN] == True:
@@ -216,8 +199,6 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
             else:
                 racecar.reverse(modifier) #Reverse if stopped or reversing already
         else:
-            if racecar.speed > racecar.topSpeed * modifier: #Speed cannot exceed maximum for terrain type when coasting
-                racecar.speed = racecar.topSpeed * modifier
             racecar.coast(modifier)
         if keys[pygame.K_a] or keys[pygame.K_LEFT] == True: #Turn left
             racecar.getTurnAngle(modifier)
@@ -248,13 +229,13 @@ def playGame(setup, track, currentFastest, holdLaps, holdSectors):
         pygame.draw.rect(main.screen, main.green, speedometerBox)
 
         turnAngleString = main.font.render(str(round(racecar.turnAngle, 2)), True, main.black)
-        main.screen.blit(turnAngleString, (400, 20))
+        #main.screen.blit(turnAngleString, (400, 20))
 
         accelerationString = main.font.render(str(round(racecar.acceleration,2)), True, main.black)
-        main.screen.blit(accelerationString, (500, 20))
+        #main.screen.blit(accelerationString, (500, 20))
 
         decelerationString = main.font.render(str(round(racecar.deceleration,2)), True, main.black)
-        main.screen.blit(decelerationString, (600, 20))
+        #main.screen.blit(decelerationString, (600, 20))
         main.screen.blit(speedometer, (speedometerBox.center[0]-40, speedometerBox.center[1]-10))
         main.screen.blit(racecar.image, (main.screenWidth/2,main.screenHeight/2))
 
@@ -306,12 +287,11 @@ def getTrackSection(racecar, track): #Find the section of the track the car is o
                 return trackSectionsIn[1]
         return trackSectionsIn[0]
 
-def getFastestLap(lapToAdd, fastestLap, fastestLapString): #Find the fastest lap
-    print(lapToAdd, fastestLap)
-    if lapToAdd[2] == True:
-        if lapToAdd[3] < fastestLap:
-            fastestLap = lapToAdd[3]
-            fastestLapString = lapToAdd[1]
+def getFastestLap(lapTime, lapTotal, fastestLap, fastestLapString): #Find the fastest lap
+    print(lapTime)
+    if lapTotal < fastestLap:
+        fastestLap = lapTotal
+        fastestLapString = lapTime
     return fastestLap, fastestLapString
 
 def getValidLap(section, validLap): #Check if the lap is valid

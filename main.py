@@ -24,10 +24,6 @@ racecarImage = pygame.image.load(os.path.join('images', 'racecar.png')).convert_
 
 DEFAULTSETUP = [3, 3, 3, 3, 3, 3]
 
-currentFastest = [math.inf, ""] #Reset currentFastest
-holdLaps = None
-holdSectors = None
-
 def drawText(text, font, color, surface, x, y): #Function to draw text
     textObj = font.render(text, 1, color)
     textRect = textObj.get_rect()

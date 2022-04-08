@@ -32,7 +32,7 @@ def saveToLeaderboard(track, fastestLapString, setup):
             pygame.draw.rect(main.screen, main.yellowDark, endButton)
             if click == True:
                 notSaving = False
-                displayLeaderboard(track, leaderboard, None, setup) #Go to the leaderboard with no new laps set
+                leaderboardScreen.runLeaderboard(track, None, setup) #Go to the leaderboard with no new laps set
         else:
             pygame.draw.rect(main.screen, main.yellow, endButton)
 
@@ -82,13 +82,13 @@ def saveToLeaderboard(track, fastestLapString, setup):
                 leaderboard.truncate() #Empty the leaderboard
                 positionFound = False
                 position = 0
-                totalLap = pauseMenu.getTotalLap(fastestLapString) #The integer value of the lap set in the session
+                totalLap = getTotalLap(fastestLapString) #The integer value of the lap set in the session
                 if len(leaderLaps) < 1: #If there are no previous times to compare to
                     positionFound = True
                 else:
                     while positionFound == False and position < len(leaderLaps):
                         currentLap = leaderLaps[position].split(" | ") #The lap at that point in the leaderboard
-                        currentLap = pauseMenu.getTotalLap(currentLap[0]) #Find the integer value of the lap time
+                        currentLap = getTotalLap(currentLap[0]) #Find the integer value of the lap time
                         if totalLap < currentLap and positionFound == False: #If the lap that has just been set is faster than the current lap on the leaderboard
                             positionFound = True
                         else:
@@ -118,3 +118,8 @@ def saveToLeaderboard(track, fastestLapString, setup):
         main.screen.blit(userNameText, ((main.screenWidth/2-userNameBox.width/2), (main.screenHeight/2-userNameBox.height/2)))
         pygame.display.flip()
         main.clock.tick(60)
+
+def getTotalLap(lap): #Turn the lap string into a number
+    lap = "".join(lap.split(":"))
+    lap = "".join(lap.split("."))
+    return int(lap)
