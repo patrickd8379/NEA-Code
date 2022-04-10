@@ -66,9 +66,9 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         self.gear = gear
         self.brakeBias = brakeBias
         self.turnAngle = 0
-        self.topSpeed = (8.5-(self.rearWing*0.2)-(self.frontWing*0.02)+(self.gear*0.2)-(self.camber*0.01)-(self.toe*0.01)) #Top speed affected by setup choices
+        self.topSpeed = (8.5-(self.rearWing*0.2)-(self.frontWing*0.1)+(self.gear*0.2)-(self.camber*0.05)-(self.toe*0.05)) #Top speed affected by setup choices
         self.acceleration = (0.1-(self.gear*0.01)) #Acceleration affected by gearing choice
-        self.deceleration = (0.3-(self.brakeBias*0.05)) #Deceleration affected by brake bias
+        self.deceleration = (0.2-(self.brakeBias*0.02)) #Deceleration affected by brake bias
     def accelerate(self, modifier): #Increase the speed of the car
         if self.speed < self.topSpeed*modifier: #Check if the car can go any faster on this terrain
             self.speed += (self.acceleration*modifier)
@@ -82,15 +82,17 @@ class Racecar(pygame.sprite.Sprite): #The properties and functions of the car
         elif self.speed-self.deceleration < 0 :
             self.speed = 0
     def coast(self, modifier): #Slowly decrease the speed of the car
-        if self.speed > self.topSpeed * modifier:
+        if abs(self.speed) > self.topSpeed * modifier:
             self.speed = self.topSpeed * modifier
         if self.speed > 0.1:
             self.speed -= 0.01
-        if self.speed == 0.1:
+        if self.speed < -0.1:
+            self.speed += 0.01
+        if abs(self.speed) == 0.1:
             self.speed = 0
     def getTurnAngle(self, modifier): #How quickly the car turns
         if abs(self.speed) <= self.topSpeed/2: #If below or at half of top speed
-            self.turnAngle = (2+(self.toe*0.1)+(self.camber*0.1)+(self.frontWing*0.1)+(self.rearWing*0.05))*modifier
+            self.turnAngle = (2+(self.toe*0.05)+(self.camber*0.05)+(self.frontWing*0.1)+(self.rearWing*0.05))+(self.brakeBias*0.1)*modifier
         else: #If above half of top speed
             self.turnAngle = (2+(self.rearWing*0.2)+(self.frontWing*0.1)+(self.toe*0.05)+(self.camber*0.05))*modifier
         return self.turnAngle
