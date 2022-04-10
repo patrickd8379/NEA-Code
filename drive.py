@@ -229,13 +229,13 @@ def playGame(setup, track, currentFastest, fastestSectors):
         pygame.draw.rect(main.screen, main.green, speedometerBox)
 
         turnAngleString = main.font.render(str(round(racecar.turnAngle, 2)), True, main.black)
-        #main.screen.blit(turnAngleString, (400, 20))
+        main.screen.blit(turnAngleString, (400, 20))
 
         accelerationString = main.font.render(str(round(racecar.acceleration,2)), True, main.black)
-        #main.screen.blit(accelerationString, (500, 20))
+        main.screen.blit(accelerationString, (500, 20))
 
         decelerationString = main.font.render(str(round(racecar.deceleration,2)), True, main.black)
-        #main.screen.blit(decelerationString, (600, 20))
+        main.screen.blit(decelerationString, (600, 20))
         main.screen.blit(speedometer, (speedometerBox.center[0]-40, speedometerBox.center[1]-10))
         main.screen.blit(racecar.image, (main.screenWidth/2,main.screenHeight/2))
 
